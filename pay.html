@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>MetaMask 支付</title>
+</head>
+<body>
+  <h2>正在准备交易...</h2>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+  <script>
+    (async () => {
+      const params = new URLSearchParams(window.location.search);
+      const to = params.get("to");
+      const amountEth = params.get("amount");
+      const chainId = params.get("chainId") || "1";
+      const returnUrl = params.get("returnUrl"); // 新增：回跳地址
+
+      if (!window.ethereum) {
+        alert("请在 MetaMask 中打开此页面");
+        return;
+      }
+
+      try {
+        await ethereum.request({ method: "eth_requestAccounts" });
+        const accounts = await ethereum.request({ method: "eth_accounts" });
+
+        const currentChainId = await ethereum.request({ method: "eth_chainId" });
+        if (parseInt(currentChainId, 16) !== Number(chainId)) {
+          await ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: '0x' + Number(chainId).toString(16) }],
+          });
+        }
+
+        const tx = {
+          from: accounts[0],
+          to,
+          value: Web3.utils.toWei(amountEth, "ether"),
+        };
+        const txHash = await ethereum.request({ method: "eth_sendTransaction", params: [tx] });
+
+        alert(`交易已提交，哈希: ${txHash}`);
+
+        // 如果有回跳地址，就跳回 App
+        if (returnUrl) {
+          window.location.href = decodeURIComponent(returnUrl);
+        }
+      } catch (err) {
+        console.error(err);
+        alert("交易失败: " + err.message);
+
+        // 失败也可以回跳
+        if (returnUrl) {
+          window.location.href = decodeURIComponent(returnUrl);
+        }
+      }
+    })();
+  </script>
+</body>
+</html>
