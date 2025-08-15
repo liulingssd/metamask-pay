@@ -14,7 +14,7 @@
       const amountEth = params.get("amount");
       const chainId = params.get("chainId") || "1";
       const returnUrl = params.get("returnUrl"); // 新增：回跳地址
-      console.log(amountEth,'amountEth')
+      console.log(amountEth,'amountEth',Web3.utils.toWei("0.001", "ether"))
       if (!window.ethereum) {
         alert("请在 MetaMask 中打开此页面");
         return;
@@ -28,7 +28,7 @@
         if (parseInt(currentChainId, 16) !== Number(chainId)) {
           await ethereum.request({
             method: 'wallet_switchEthereumChain',
-            params: [{ chainId: '0x' + Number(chainId).toString(16) }],
+            params: [{ chainId: '0x' + Number(chainId) }],
           });
         }
 
@@ -37,6 +37,7 @@
           to,
           value: Web3.utils.toWei("0.001", "ether"),
         };
+        console.log(tx,'tx')
         const txHash = await ethereum.request({ method: "eth_sendTransaction", params: [tx] });
 
         alert(`交易已提交，哈希: ${txHash}`);
@@ -58,6 +59,7 @@
   </script>
 </body>
 </html>
+
 
 
 
