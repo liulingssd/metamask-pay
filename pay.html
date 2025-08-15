@@ -14,7 +14,7 @@
       const amountEth = params.get("amount");
       const chainId = params.get("chainId") || "1";
       const returnUrl = params.get("returnUrl"); // 新增：回跳地址
-
+      console.log(amountEth,'amountEth')
       if (!window.ethereum) {
         alert("请在 MetaMask 中打开此页面");
         return;
@@ -58,3 +58,4 @@
   </script>
 </body>
 </html>
+
