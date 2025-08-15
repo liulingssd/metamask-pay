@@ -31,11 +31,12 @@
             params: [{ chainId: '0x' + Number(chainId) }],
           });
         }
-
+        const wei = Web3.utils.toWei(amountEth, "ether"); // 十进制 Wei
+        const hexValue = Web3.utils.toHex(wei); // 转 16 进制
         const tx = {
           from: accounts[0],
           to,
-          value: Web3.utils.toWei(amountEth, "ether"),
+          value: hexValue,
         };
         console.log(tx,'tx')
         const txHash = await ethereum.request({ method: "eth_sendTransaction", params: [tx] });
@@ -59,6 +60,7 @@
   </script>
 </body>
 </html>
+
 
 
 
