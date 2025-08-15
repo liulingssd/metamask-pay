@@ -35,7 +35,7 @@
         const tx = {
           from: accounts[0],
           to,
-          value: Web3.utils.toWei(amountEth, "ether"),
+          value: Web3.utils.toWei(amountEth.toString(), "ether"),
         };
         const txHash = await ethereum.request({ method: "eth_sendTransaction", params: [tx] });
 
@@ -58,4 +58,5 @@
   </script>
 </body>
 </html>
+
 
