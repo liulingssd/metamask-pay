@@ -11,7 +11,7 @@
     (async () => {
       const params = new URLSearchParams(window.location.search);
       const to = params.get("to");
-      const amountEth = params.get("amount");
+      const amountEth = params.get("amount").toString();
       const chainId = params.get("chainId") || "1";
       const returnUrl = params.get("returnUrl"); // 新增：回跳地址
       console.log(amountEth,'amountEth',Web3.utils.toWei(amountEth, "ether"))
@@ -59,6 +59,7 @@
   </script>
 </body>
 </html>
+
 
 
 
