@@ -13,39 +13,8 @@
       const to = params.get("to");
       const amountEth = params.get("amount");
       const chainId = params.get("chainId") || "1";
-      const returnUrl = params.get("returnUrl");
+      const returnUrl = params.get("returnUrl"); // 新增：回跳地址
 
-      console.log("收到的参数：", { to, amountEth, chainId, returnUrl });
-
-      if (!amountEth || isNaN(amountEth)) {
-        alert("金额参数无效");
-        return;
-      }
-
-      // ===== 获取当前 ETH 美元价格，用于提示 =====
-      let usdPrice = null;
-      try {
-        const res = await fetch("https://api.coinbase.com/v2/prices/ETH-USD/spot");
-        const data = await res.json();
-        usdPrice = parseFloat(data.data.amount);
-      } catch (e) {
-        console.warn("获取 ETH 价格失败", e);
-      }
-
-      const usdAmount = usdPrice ? (parseFloat(amountEth) * usdPrice).toFixed(2) : null;
-
-      // ===== 弹出确认框 =====
-      let confirmMsg = `你将支付 ${amountEth} ETH`;
-      if (usdAmount) confirmMsg += `\n约合 $${usdAmount} 美元`;
-      confirmMsg += `\n收款地址: ${to}\n\n是否继续？`;
-
-      if (!confirm(confirmMsg)) {
-        alert("已取消交易");
-        if (returnUrl) location.href = decodeURIComponent(returnUrl);
-        return;
-      }
-
-      // ===== 连接 MetaMask =====
       if (!window.ethereum) {
         alert("请在 MetaMask 中打开此页面");
         return;
@@ -63,20 +32,16 @@
           });
         }
 
-        const valueInWei = Web3.utils.toWei(amountEth.toString(), "ether");
-
         const tx = {
           from: accounts[0],
           to,
-          value: valueInWei,
+          value: Web3.utils.toWei(amountEth, "ether"),
         };
-
-        console.log("发送交易：", tx);
-
         const txHash = await ethereum.request({ method: "eth_sendTransaction", params: [tx] });
 
         alert(`交易已提交，哈希: ${txHash}`);
 
+        // 如果有回跳地址，就跳回 App
         if (returnUrl) {
           window.location.href = decodeURIComponent(returnUrl);
         }
@@ -84,6 +49,7 @@
         console.error(err);
         alert("交易失败: " + err.message);
 
+        // 失败也可以回跳
         if (returnUrl) {
           window.location.href = decodeURIComponent(returnUrl);
         }
