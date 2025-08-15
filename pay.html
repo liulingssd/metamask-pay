@@ -14,7 +14,7 @@
       const amountEth = params.get("amount");
       const chainId = params.get("chainId") || "1";
       const returnUrl = params.get("returnUrl"); // 新增：回跳地址
-      console.log(amountEth,'amountEth',Web3.utils.toWei("0.001", "ether"))
+      console.log(amountEth,'amountEth',Web3.utils.toWei(amountEth, "ether"))
       if (!window.ethereum) {
         alert("请在 MetaMask 中打开此页面");
         return;
@@ -35,7 +35,7 @@
         const tx = {
           from: accounts[0],
           to,
-          value: Web3.utils.toWei("0.001", "ether"),
+          value: Web3.utils.toWei(amountEth, "ether"),
         };
         console.log(tx,'tx')
         const txHash = await ethereum.request({ method: "eth_sendTransaction", params: [tx] });
@@ -59,6 +59,7 @@
   </script>
 </body>
 </html>
+
 
 
 
