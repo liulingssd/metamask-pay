@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>WalletConnect Demo</title>
+  <script src="https://unpkg.com/@walletconnect/sign-client/dist/umd/index.min.js"></script>
+</head>
+<body>
+  <h2>MetaMask 交易 Demo</h2>
+  <button id="connectBtn">连接钱包</button>
+  <button id="payBtn">支付 0.01 ETH</button>
+  <pre id="result"></pre>
+
+  <script>
+    let client, session;
+
+    async function init() {
+      client = await window.SignClient.default.init({
+        projectId: "1bdcffb34b08842fbe35f8ee1c30ff44",
+        relayUrl: "wss://relay.walletconnect.com",
+        metadata: {
+          name: "UniApp DApp",
+          description: "WalletConnect Demo",
+          url: "https://example.com",
+          icons: ["https://example.com/icon.png"],
+        },
+      });
+    }
+
+    async function connectWallet() {
+      const { uri, approval } = await client.connect({
+        requiredNamespaces: {
+          eip155: {
+            methods: ["eth_sendTransaction"],
+            chains: ["eip155:1"], // 主网
+            events: ["chainChanged", "accountsChanged"],
+          },
+        },
+      });
+
+      if (uri) {
+        // 唤起钱包
+        window.location.href = `metamask://wc?uri=${encodeURIComponent(uri)}`;
+      }
+
+      session = await approval();
+      document.getElementById("result").innerText = "钱包已连接: " + JSON.stringify(session, null, 2);
+    }
+
+    async function sendTx() {
+      if (!session) return alert("请先连接钱包");
+
+      const tx = {
+        from: session.namespaces.eip155.accounts[0].split(":")[2],
+        to: "0x接收地址", // 替换为目标地址
+        value: "0x" + (0.01 * 1e18).toString(16),
+        data: "0x",
+      };
+
+      const txHash = await client.request({
+        topic: session.topic,
+        chainId: "eip155:1",
+        request: {
+          method: "eth_sendTransaction",
+          params: [tx],
+        },
+      });
+
+      document.getElementById("result").innerText = "交易已发起, txHash: " + txHash;
+
+      // ✅ 把 txHash 回传给 uniapp App
+      if (window.ReactNativeWebView) {
+        // ReactNative Webview
+        window.ReactNativeWebView.postMessage(JSON.stringify({ txHash }));
+      } else if (window.parent) {
+        // uniapp 内置 webview (plus.webview)
+        window.parent.postMessage({ txHash }, "*");
+      }
+    }
+
+    document.getElementById("connectBtn").onclick = connectWallet;
+    document.getElementById("payBtn").onclick = sendTx;
+
+    init();
+  </script>
+</body>
+</html>
