@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <title>WalletConnect Demo</title>
-  <script src="https://unpkg.com/@walletconnect/sign-client/dist/umd/index.min.js"></script>
+  <!-- 使用最新稳定版本的SignClient -->
+  <script src="https://unpkg.com/@walletconnect/sign-client@2.10.0/dist/umd/index.min.js"></script>
 </head>
 <body>
   <h2>MetaMask 交易 Demo</h2>
@@ -14,74 +15,121 @@
   <script>
     let client, session;
 
-    async function init() {
-      client = await window.SignClient.default.init({
-        projectId: "1bdcffb34b08842fbe35f8ee1c30ff44",
-        relayUrl: "wss://relay.walletconnect.com",
-        metadata: {
-          name: "UniApp DApp",
-          description: "WalletConnect Demo",
-          url: "https://example.com",
-          icons: ["https://example.com/icon.png"],
-        },
-      });
-    }
+    // 等待DOM和脚本加载完成后初始化
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        // 修复：SignClient不需要.default，直接使用模块导出
+        client = await SignClient.init({
+          projectId: "1bdcffb34b08842fbe35f8ee1c30ff44", // 建议替换为自己的projectId
+          relayUrl: "wss://relay.walletconnect.com",
+          metadata: {
+            name: "UniApp DApp",
+            description: "WalletConnect Demo",
+            url: "https://example.com",
+            icons: ["https://example.com/icon.png"],
+          },
+        });
+        console.log("WalletConnect客户端初始化成功");
+      } catch (error) {
+        console.error("初始化失败:", error);
+        document.getElementById("result").innerText = "初始化失败: " + error.message;
+      }
+    });
 
     async function connectWallet() {
-      const { uri, approval } = await client.connect({
-        requiredNamespaces: {
-          eip155: {
-            methods: ["eth_sendTransaction"],
-            chains: ["eip155:1"], // 主网
-            events: ["chainChanged", "accountsChanged"],
-          },
-        },
-      });
-
-      if (uri) {
-        // 唤起钱包
-        window.location.href = `metamask://wc?uri=${encodeURIComponent(uri)}`;
+      if (!client) {
+        alert("客户端未初始化完成");
+        return;
       }
 
-      session = await approval();
-      document.getElementById("result").innerText = "钱包已连接: " + JSON.stringify(session, null, 2);
+      try {
+        const { uri, approval } = await client.connect({
+          requiredNamespaces: {
+            eip155: {
+              methods: ["eth_sendTransaction"],
+              chains: ["eip155:1"], // 以太坊主网，测试可用eip155:5(Goerli)
+              events: ["chainChanged", "accountsChanged"],
+            },
+          },
+        });
+
+        if (uri) {
+          // 修复：使用WalletConnect官方推荐的方式唤起MetaMask
+          // 方式1：生成二维码让用户扫描（适合桌面端）
+          // 方式2：移动端直接唤起（需MetaMask支持）
+          const encodedUri = encodeURIComponent(uri);
+          
+          // 优先尝试Deep Link唤起
+          if (/(iPhone|iPad|iPod|Android)/i.test(navigator.userAgent)) {
+            window.location.href = `metamask://wc?uri=${encodedUri}`;
+            
+            // 如果3秒内未唤起，提示用户手动打开
+            setTimeout(() => {
+              alert("请手动打开MetaMask并扫描二维码");
+              // 这里可以显示二维码图片（需引入qrcode库）
+            }, 3000);
+          } else {
+            // 桌面端显示二维码
+            alert("请用MetaMask扫描以下链接: " + uri);
+          }
+        }
+
+        // 等待用户在钱包中确认连接
+        session = await approval();
+        document.getElementById("result").innerText = "钱包已连接: " + 
+          JSON.stringify(session.namespaces.eip155.accounts, null, 2);
+      } catch (error) {
+        console.error("连接失败:", error);
+        document.getElementById("result").innerText = "连接失败: " + error.message;
+      }
     }
 
     async function sendTx() {
       if (!session) return alert("请先连接钱包");
 
-      const tx = {
-        from: session.namespaces.eip155.accounts[0].split(":")[2],
-        to: "0x接收地址", // 替换为目标地址
-        value: "0x" + (0.01 * 1e18).toString(16),
-        data: "0x",
-      };
+      try {
+        // 解析当前连接的账户地址
+        const [chain, account] = session.namespaces.eip155.accounts[0].split(":");
+        const fromAddress = account;
 
-      const txHash = await client.request({
-        topic: session.topic,
-        chainId: "eip155:1",
-        request: {
-          method: "eth_sendTransaction",
-          params: [tx],
-        },
-      });
+        // 构建交易参数（0.01 ETH）
+        const tx = {
+          from: fromAddress,
+          to: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e", // 替换为实际接收地址
+          value: "0x" + (0.01 * 1e18).toString(16), // 转为wei并转16进制
+          gas: "0x5208", // 21000 gas (十进制)
+          gasPrice: "0x3b9aca00", // 1 Gwei (十进制)
+          data: "0x",
+          chainId: "0x1" // 以太坊主网
+        };
 
-      document.getElementById("result").innerText = "交易已发起, txHash: " + txHash;
+        // 发送交易请求
+        const txHash = await client.request({
+          topic: session.topic,
+          chainId: "eip155:1",
+          request: {
+            method: "eth_sendTransaction",
+            params: [tx],
+          },
+        });
 
-      // ✅ 把 txHash 回传给 uniapp App
-      if (window.ReactNativeWebView) {
-        // ReactNative Webview
-        window.ReactNativeWebView.postMessage(JSON.stringify({ txHash }));
-      } else if (window.parent) {
-        // uniapp 内置 webview (plus.webview)
-        window.parent.postMessage({ txHash }, "*");
+        document.getElementById("result").innerText = "交易已发起, txHash: " + txHash;
+
+        // 回传给Uniapp
+        if (window.ReactNativeWebView) {
+          window.ReactNativeWebView.postMessage(JSON.stringify({ txHash }));
+        } else if (window.parent) {
+          window.parent.postMessage({ txHash }, "*");
+        }
+      } catch (error) {
+        console.error("交易失败:", error);
+        document.getElementById("result").innerText = "交易失败: " + error.message;
       }
     }
 
-    document.getElementById("connectBtn").onclick = connectWallet;
-    document.getElementById("payBtn").onclick = sendTx;
-
-    init();
+    // 绑定按钮事件
+    document.getElementById("connectBtn").addEventListener("click", connectWallet);
+    document.getElementById("payBtn").addEventListener("click", sendTx);
   </script>
 </body>
 </html>
