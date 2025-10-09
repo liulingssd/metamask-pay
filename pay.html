@@ -1,65 +1,83 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh">
 <head>
   <meta charset="UTF-8" />
   <title>MetaMask 支付</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.11.1/dist/ethers.umd.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      text-align: center;
+    }
+    button {
+      background: #f6851b;
+      border: none;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #log { margin-top: 20px; color: #333; word-break: break-all; }
+  </style>
 </head>
 <body>
-  <h2>正在准备交易...</h2>
-  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+  <h2>MetaMask 支付</h2>
+  <p id="info">准备唤起 MetaMask...</p>
+  <button id="payBtn" style="display:none;">发起支付</button>
+  <div id="log"></div>
+
   <script>
-    (async () => {
-      const params = new URLSearchParams(window.location.search);
-      const to = params.get("to");
-      const amountEth = params.get("amount").toString();
-      const chainId = params.get("chainId") || "1";
-      const returnUrl = params.get("returnUrl"); // 新增：回跳地址
-      console.log(amountEth,'amountEth',Web3.utils.toWei(amountEth, "ether"))
-      if (!window.ethereum) {
-        alert("请在 MetaMask 中打开此页面");
-        return;
-      }
+    const urlParams = new URLSearchParams(window.location.search)
+    const to = urlParams.get('to')
+    const amount = urlParams.get('amount') || '0.001'
+    const callback = urlParams.get('callback')
 
+    const log = msg => document.getElementById('log').innerText += msg + '\n'
+
+    async function pay() {
       try {
-        await ethereum.request({ method: "eth_requestAccounts" });
-        const accounts = await ethereum.request({ method: "eth_accounts" });
-
-        const currentChainId = await ethereum.request({ method: "eth_chainId" });
-        if (parseInt(currentChainId, 16) !== Number(chainId)) {
-          await ethereum.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: '0x' + Number(chainId) }],
-          });
+        if (!window.ethereum) {
+          document.getElementById('info').innerText = 'MetaMask 未注入，请在 MetaMask 内打开此页面'
+          return
         }
-        const wei = Web3.utils.toWei(amountEth, "ether"); // 十进制 Wei
-        const hexValue = Web3.utils.toHex(wei); // 转 16 进制
-        const tx = {
-          from: accounts[0],
-          to,
-          value: hexValue,
-        };
-        console.log(tx,'tx')
-        const txHash = await ethereum.request({ method: "eth_sendTransaction", params: [tx] });
+        await window.ethereum.request({ method: 'eth_requestAccounts' })
+        const provider = new ethers.BrowserProvider(window.ethereum)
+        const signer = await provider.getSigner()
+        const tx = await signer.sendTransaction({
+          to: to,
+          value: ethers.parseEther(amount)
+        })
+        log('交易已发送，等待确认...')
+        log('Tx Hash: ' + tx.hash)
 
-        alert(`交易已提交，哈希: ${txHash}`);
-
-        // 如果有回跳地址，就跳回 App
-        if (returnUrl) {
-          window.location.href = decodeURIComponent(returnUrl);
+        if (callback) {
+          setTimeout(() => {
+            window.location.href = callback + '?txHash=' + tx.hash
+          }, 1500)
         }
-      } catch (err) {
-        console.error(err);
-        alert("交易失败: " + err.message);
-
-        // 失败也可以回跳
-        if (returnUrl) {
-          window.location.href = decodeURIComponent(returnUrl);
-        }
+      } catch (e) {
+        log('错误: ' + e.message)
       }
-    })();
+    }
+
+    // 检测是否在 MetaMask 内打开
+    if (!window.ethereum && !window.location.href.startsWith('metamask://')) {
+      const deeplink = `metamask://dapp/liulingssd.github.io/metamask-pay/pay.html?${urlParams.toString()}`
+      document.getElementById('info').innerText = '正在跳转到 MetaMask...'
+      setTimeout(() => window.location.href = deeplink, 800)
+    } else {
+      document.getElementById('payBtn').style.display = 'inline-block'
+      document.getElementById('payBtn').addEventListener('click', pay)
+      document.getElementById('info').innerText = `准备支付 ${amount} ETH 到 ${to}`
+    }
   </script>
 </body>
 </html>
+
+
 
 
 
