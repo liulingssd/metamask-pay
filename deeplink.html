@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>移动加密支付</title>
-  <!-- 引入必要库 -->
+  <title>手机钱包连接修复版</title>
   <script src="ethers-5.6.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
@@ -17,254 +16,413 @@
     }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: #1a1a2e;
-      color: #ffffff;
-      padding: 20px;
+      background-color: #121212;
+      color: #f0f0f0;
+      padding: 16px;
       min-height: 100vh;
     }
     .container {
-      max-width: 500px;
+      max-width: 450px;
       margin: 0 auto;
     }
     header {
       text-align: center;
-      margin-bottom: 30px;
+      margin: 20px 0 30px;
     }
     h1 {
-      font-size: 1.8rem;
-      margin-bottom: 10px;
-      color: #4fd1c5;
+      font-size: 1.6rem;
+      margin-bottom: 8px;
+      color: #03dac6;
+    }
+    .subtitle {
+      color: #bbbbbb;
+      font-size: 0.9rem;
     }
     .card {
-      background-color: #16213e;
+      background-color: #1e1e1e;
       border-radius: 12px;
-      padding: 25px;
+      padding: 20px;
       margin-bottom: 20px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
-    .form-group {
-      margin-bottom: 20px;
+    .wallet-connector {
+      margin-bottom: 25px;
     }
-    label {
-      display: block;
-      margin-bottom: 8px;
-      color: #a9bcd0;
-      font-size: 0.9rem;
-      font-weight: 500;
-    }
-    input, select {
-      width: 100%;
-      padding: 14px;
-      border: 1px solid #253b56;
+    .wallet-option {
+      background-color: #2d2d2d;
+      border: 1px solid #3d3d3d;
       border-radius: 8px;
-      background-color: #0f3460;
-      color: #ffffff;
-      font-size: 1rem;
-    }
-    button {
-      background-color: #4fd1c5;
-      color: #1a202c;
       padding: 14px;
-      border: none;
-      border-radius: 8px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
       cursor: pointer;
-      width: 100%;
-      font-size: 1rem;
-      font-weight: 600;
-      transition: all 0.3s;
+      transition: all 0.2s;
+    }
+    .wallet-option:hover {
+      border-color: #03dac6;
+      background-color: #333333;
+    }
+    .wallet-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: #333;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-    }
-    button:hover {
-      background-color: #38b2ac;
-      transform: translateY(-2px);
-    }
-    button:disabled {
-      background-color: #4a5568;
-      cursor: not-allowed;
-      transform: none;
-    }
-    .wallet-options {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-    .status {
-      padding: 14px;
-      border-radius: 8px;
-      margin-top: 15px;
-      display: none;
-      font-size: 0.95rem;
-      line-height: 1.5;
-    }
-    .status-info {
-      background-color: rgba(59, 130, 246, 0.2);
-      border: 1px solid #3b82f6;
-      color: #93c5fd;
-    }
-    .status-success {
-      background-color: rgba(34, 197, 94, 0.2);
-      border: 1px solid #22c55e;
-      color: #a7f3d0;
-    }
-    .status-error {
-      background-color: rgba(239, 68, 68, 0.2);
-      border: 1px solid #ef4444;
-      color: #fecaca;
+      margin-right: 12px;
+      font-size: 1.2rem;
     }
     .wallet-info {
-      margin-top: 15px;
-      padding: 14px;
-      background-color: #0f3460;
+      flex: 1;
+    }
+    .wallet-name {
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+    .wallet-desc {
+      font-size: 0.8rem;
+      color: #aaaaaa;
+    }
+    .connection-steps {
+      margin: 25px 0;
+    }
+    .step {
+      display: flex;
+      margin-bottom: 16px;
+      align-items: flex-start;
+    }
+    .step-number {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background-color: #03dac6;
+      color: #121212;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+    .step-content {
+      flex: 1;
+    }
+    .step-title {
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    .step-desc {
+      font-size: 0.85rem;
+      color: #bbbbbb;
+      line-height: 1.5;
+    }
+    .status-container {
+      margin: 15px 0;
+      padding: 12px;
       border-radius: 8px;
+      display: none;
+    }
+    .status-info {
+      background-color: rgba(33, 150, 243, 0.15);
+      border: 1px solid #2196f3;
+      color: #bbdefb;
+    }
+    .status-success {
+      background-color: rgba(76, 175, 80, 0.15);
+      border: 1px solid #4caf50;
+      color: #c8e6c9;
+    }
+    .status-error {
+      background-color: rgba(244, 67, 54, 0.15);
+      border: 1px solid #f44336;
+      color: #ffcdd2;
+    }
+    .status-text {
       font-size: 0.9rem;
+      line-height: 1.5;
     }
-    .wallet-info p {
-      margin-bottom: 8px;
-    }
-    .tx-hash {
-      margin-top: 15px;
-      padding: 14px;
-      background-color: #0f3460;
-      border-radius: 8px;
+    .qrcode-section {
       display: none;
-    }
-    .tx-hash h4 {
-      margin-bottom: 10px;
-      color: #4fd1c5;
-    }
-    .qrcode-container {
-      display: none;
-      margin: 20px auto;
       text-align: center;
+      margin: 20px 0;
     }
-    #walletConnectQr {
-      max-width: 250px;
+    #qrcode {
+      max-width: 220px;
       margin: 0 auto 15px;
       padding: 10px;
       background-color: white;
       border-radius: 8px;
     }
-    .instruction {
-      background-color: rgba(251, 191, 36, 0.1);
-      border: 1px solid #f59e0b;
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 20px;
+    .qrcode-msg {
+      color: #bbbbbb;
       font-size: 0.9rem;
-      color: #fde68a;
+      margin-bottom: 15px;
     }
-    .instruction h3 {
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    button {
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 500;
+      font-size: 0.9rem;
+      cursor: pointer;
+      flex: 1;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .primary-btn {
+      background-color: #03dac6;
+      color: #121212;
+    }
+    .primary-btn:hover {
+      background-color: #02c6b2;
+    }
+    .secondary-btn {
+      background-color: #333333;
+      color: #f0f0f0;
+    }
+    .secondary-btn:hover {
+      background-color: #444444;
+    }
+    .wallet-connected {
+      display: none;
+      margin-top: 20px;
+    }
+    .wallet-details {
+      background-color: #2d2d2d;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+    .detail-item {
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+    }
+    .detail-label {
+      color: #aaaaaa;
+      margin-bottom: 3px;
+      font-size: 0.8rem;
+    }
+    .detail-value {
+      font-family: monospace;
+      word-break: break-all;
+    }
+    .payment-form {
+      display: none;
+      margin-top: 20px;
+    }
+    .form-group {
+      margin-bottom: 18px;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+      color: #bbbbbb;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #3d3d3d;
+      border-radius: 8px;
+      background-color: #2d2d2d;
+      color: #f0f0f0;
+      font-size: 0.9rem;
+    }
+    .troubleshoot {
+      margin-top: 30px;
+      padding: 15px;
+      background-color: #1e1e1e;
+      border-radius: 8px;
+      border-left: 4px solid #ff9800;
+    }
+    .troubleshoot h3 {
+      color: #ff9800;
+      font-size: 1rem;
+      margin-bottom: 10px;
       display: flex;
       align-items: center;
       gap: 8px;
+    }
+    .troubleshoot-list {
+      list-style-type: none;
+    }
+    .troubleshoot-item {
       margin-bottom: 10px;
-      font-size: 1rem;
-    }
-    .address-short {
-      font-family: monospace;
-      background-color: rgba(255, 255, 255, 0.1);
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-    .cost-info {
-      margin-top: 15px;
-      padding: 12px;
-      background-color: #1a3a63;
-      border-radius: 8px;
       font-size: 0.85rem;
+      line-height: 1.5;
+    }
+    .troubleshoot-item:last-child {
+      margin-bottom: 0;
+    }
+    .highlight {
+      color: #03dac6;
+      font-weight: 500;
+    }
+    .disclaimer {
+      margin-top: 20px;
+      font-size: 0.8rem;
+      color: #777777;
+      text-align: center;
+      line-height: 1.4;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>移动加密支付</h1>
-      <p style="color: #a9bcd0;">通过手机钱包安全支付</p>
+      <h1>手机钱包支付</h1>
+      <p class="subtitle">解决连接问题的优化版本</p>
     </header>
     
     <div class="card">
-      <div class="instruction">
-        <h3><i class="fa fa-mobile" style="font-size: 1.2rem;"></i> 手机支付指南</h3>
-        <p>1. 选择您的钱包类型</p>
-        <p>2. 按照提示连接钱包</p>
-        <p>3. 输入金额并确认支付</p>
+      <div class="wallet-connector">
+        <p style="margin-bottom: 15px; color: #bbbbbb; font-size: 0.9rem;">选择您的钱包类型：</p>
+        
+        <div class="wallet-option" id="metamaskOption">
+          <div class="wallet-icon">
+            <i class="fa fa-rocket"></i>
+          </div>
+          <div class="wallet-info">
+            <div class="wallet-name">MetaMask</div>
+            <div class="wallet-desc">通过应用直接连接</div>
+          </div>
+        </div>
+        
+        <div class="wallet-option" id="walletConnectOption">
+          <div class="wallet-icon">
+            <i class="fa fa-qrcode"></i>
+          </div>
+          <div class="wallet-info">
+            <div class="wallet-name">WalletConnect</div>
+            <div class="wallet-desc">支持所有兼容钱包（扫描二维码）</div>
+          </div>
+        </div>
       </div>
       
-      <div class="wallet-options">
-        <button type="button" id="connectMetamask">
-          <i class="fa fa-metamask"></i> 连接MetaMask
+      <div class="connection-steps" id="connectionSteps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <div class="step-title">选择钱包类型</div>
+            <div class="step-desc">根据您使用的钱包应用选择对应的连接方式</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <div class="step-title">启动连接</div>
+            <div class="step-desc">点击钱包选项，按照提示操作</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <div class="step-title">授权连接</div>
+            <div class="step-desc">在钱包应用中确认连接请求</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="status-container" id="statusContainer">
+        <div class="status-text" id="statusText"></div>
+      </div>
+      
+      <div class="qrcode-section" id="qrcodeSection">
+        <div id="qrcode"></div>
+        <div class="qrcode-msg" id="qrcodeMsg">请用钱包扫描二维码</div>
+        <div class="action-buttons">
+          <button class="secondary-btn" id="cancelBtn">
+            <i class="fa fa-times"></i> 取消
+          </button>
+          <button class="primary-btn" id="refreshQrBtn">
+            <i class="fa fa-refresh"></i> 刷新二维码
+          </button>
+        </div>
+      </div>
+      
+      <div class="wallet-connected" id="walletConnected">
+        <h3 style="margin-bottom: 15px; color: #03dac6;">钱包已连接</h3>
+        <div class="wallet-details">
+          <div class="detail-item">
+            <div class="detail-label">钱包地址</div>
+            <div class="detail-value" id="walletAddress"></div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">余额</div>
+            <div class="detail-value" id="walletBalance"></div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">网络</div>
+            <div class="detail-value" id="walletNetwork"></div>
+          </div>
+        </div>
+        <button class="secondary-btn" id="disconnectBtn">
+          <i class="fa fa-sign-out"></i> 断开连接
         </button>
-        <button type="button" id="connectWalletConnect">
-          <i class="fa fa-qrcode"></i> WalletConnect连接
-        </button>
       </div>
       
-      <div id="walletInfo" class="wallet-info hidden">
-        <p><strong>钱包地址:</strong> <span id="walletAddress" class="address-short"></span></p>
-        <p><strong>余额:</strong> <span id="walletBalance"></span> ETH</p>
-        <p><strong>网络:</strong> <span id="walletNetwork"></span></p>
-      </div>
-      
-      <div class="qrcode-container" id="qrcodeContainer">
-        <div id="walletConnectQr"></div>
-        <p style="color: #a9bcd0; font-size: 0.9rem;">请用钱包扫描二维码连接</p>
-        <button type="button" id="cancelConnect" style="margin-top: 10px; background-color: #4a5568;">
-          <i class="fa fa-times"></i> 取消连接
-        </button>
-      </div>
-      
-      <form id="paymentForm" class="hidden">
+      <div class="payment-form" id="paymentForm">
+        <h3 style="margin-bottom: 15px; color: #03dac6;">发起支付</h3>
         <div class="form-group">
           <label for="recipient">收款地址</label>
           <input 
             type="text" 
             id="recipient" 
             value="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-            required
+            readonly
           >
         </div>
-        
         <div class="form-group">
-          <label for="amount">转账金额 (ETH)</label>
+          <label for="amount">金额 (ETH)</label>
           <input 
             type="number" 
             id="amount" 
             value="0.01" 
             min="0.001" 
             step="0.001"
-            required
           >
         </div>
-        
-        <div class="cost-info">
-          <p><strong>预计总费用:</strong> <span id="totalCost">0.011 ETH</span></p>
-          <p>包含转账金额 + Gas费用</p>
-        </div>
-        
-        <button type="button" id="payButton">
+        <button class="primary-btn" id="payBtn">
           <i class="fa fa-paper-plane"></i> 确认支付
         </button>
-      </form>
-      
-      <div id="status" class="status"></div>
-      
-      <div class="tx-hash" id="txHashArea">
-        <h4>交易哈希</h4>
-        <div style="display: flex; align-items: center;">
-          <span id="txHash" style="word-break: break-all; flex: 1; font-family: monospace; font-size: 0.85rem;"></span>
-          <button id="copyBtn" style="width: auto; padding: 6px 10px; margin-left: 10px;">
-            <i class="fa fa-copy"></i>
-          </button>
-        </div>
-        <a id="explorerLink" href="" target="_blank" style="display: block; margin-top: 10px; color: #4fd1c5; font-size: 0.85rem;">
-          在浏览器中查看
-        </a>
       </div>
     </div>
+    
+    <div class="troubleshoot">
+      <h3><i class="fa fa-wrench"></i> 连接问题排查</h3>
+      <ul class="troubleshoot-list">
+        <li class="troubleshoot-item">
+          <strong>问题：</strong>扫描二维码后没有反应<br>
+          <strong>解决：</strong>确保您的钱包应用是最新版本，尝试关闭并重新打开钱包应用
+        </li>
+        <li class="troubleshoot-item">
+          <strong>问题：</strong>连接后很快断开<br>
+          <strong>解决：</strong>检查网络连接，尝试使用稳定的Wi-Fi，关闭手机VPN
+        </li>
+        <li class="troubleshoot-item">
+          <strong>问题：</strong>提示"连接超时"<br>
+          <strong>解决：</strong>点击"刷新二维码"重新生成连接，在1分钟内完成扫描
+        </li>
+        <li class="troubleshoot-item">
+          <strong>问题：</strong>MetaMask连接失败<br>
+          <strong>解决：</strong>尝试使用WalletConnect方式，或手动在MetaMask中添加DApp
+        </li>
+      </ul>
+    </div>
+    
+    <p class="disclaimer">
+      提示：确保您的钱包应用已更新到最新版本。连接过程中请保持网络稳定。
+    </p>
   </div>
 
   <script>
@@ -274,240 +432,219 @@
       let signer;
       let address;
       let walletConnectProvider;
-      let isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      let connectTimer;
+      const CONNECT_TIMEOUT = 120000; // 2分钟连接超时
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
       
       // DOM元素
-      const connectMetamaskBtn = document.getElementById('connectMetamask');
-      const connectWalletConnectBtn = document.getElementById('connectWalletConnect');
-      const cancelConnectBtn = document.getElementById('cancelConnect');
-      const payButton = document.getElementById('payButton');
-      const status = document.getElementById('status');
-      const txHashArea = document.getElementById('txHashArea');
-      const txHash = document.getElementById('txHash');
-      const copyBtn = document.getElementById('copyBtn');
-      const explorerLink = document.getElementById('explorerLink');
-      const walletInfo = document.getElementById('walletInfo');
+      const metamaskOption = document.getElementById('metamaskOption');
+      const walletConnectOption = document.getElementById('walletConnectOption');
+      const connectionSteps = document.getElementById('connectionSteps');
+      const statusContainer = document.getElementById('statusContainer');
+      const statusText = document.getElementById('statusText');
+      const qrcodeSection = document.getElementById('qrcodeSection');
+      const qrcode = document.getElementById('qrcode');
+      const qrcodeMsg = document.getElementById('qrcodeMsg');
+      const cancelBtn = document.getElementById('cancelBtn');
+      const refreshQrBtn = document.getElementById('refreshQrBtn');
+      const walletConnected = document.getElementById('walletConnected');
       const walletAddress = document.getElementById('walletAddress');
       const walletBalance = document.getElementById('walletBalance');
       const walletNetwork = document.getElementById('walletNetwork');
+      const disconnectBtn = document.getElementById('disconnectBtn');
       const paymentForm = document.getElementById('paymentForm');
-      const amountInput = document.getElementById('amount');
-      const totalCostElement = document.getElementById('totalCost');
-      const qrcodeContainer = document.getElementById('qrcodeContainer');
-      const walletConnectQr = document.getElementById('walletConnectQr');
+      const payBtn = document.getElementById('payBtn');
       
-      // 显示状态
-      const showStatus = function(message, type = 'info') {
-        status.textContent = message;
-        status.className = `status status-${type}`;
-        status.style.display = 'block';
-      };
+      // 显示状态信息
+      function showStatus(message, type = 'info') {
+        statusText.textContent = message;
+        statusContainer.className = `status-container status-${type}`;
+        statusContainer.style.display = 'block';
+      }
       
-      // 隐藏状态
-      const hideStatus = function() {
-        status.style.display = 'none';
-      };
-      
-      // 显示交易哈希
-      const showTransactionHash = function(hash) {
-        txHash.textContent = hash;
-        txHashArea.style.display = 'block';
-        
-        // 设置区块链浏览器链接
-        let explorerUrl = `https://etherscan.io/tx/${hash}`;
-        if (walletNetwork.textContent.includes('BSC')) {
-          explorerUrl = `https://bscscan.com/tx/${hash}`;
-        } else if (walletNetwork.textContent.includes('Polygon')) {
-          explorerUrl = `https://polygonscan.com/tx/${hash}`;
-        }
-        explorerLink.href = explorerUrl;
-      };
+      // 隐藏状态信息
+      function hideStatus() {
+        statusContainer.style.display = 'none';
+      }
       
       // 格式化地址显示
-      const formatAddress = function(addr) {
+      function formatAddress(addr) {
+        if (!addr) return '';
         return addr.substring(0, 6) + '...' + addr.substring(38);
-      };
+      }
       
       // 格式化网络名称
-      const formatNetwork = function(chainId) {
+      function formatNetwork(chainId) {
         const networks = {
           '0x1': '以太坊主网',
           '0x38': '币安智能链',
-          '0x89': 'Polygon主网',
-          '0x5': 'Goerli测试网'
+          '0x89': 'Polygon',
+          '0x5': 'Goerli测试网',
+          '0x61': 'BSC测试网'
         };
         return networks[chainId] || `未知网络 (${chainId})`;
-      };
+      }
       
-      // 更新余额显示
-      const updateBalance = async function() {
-        if (!provider || !address) return;
+      // 重置连接状态
+      function resetConnection() {
+        // 清除超时计时器
+        if (connectTimer) {
+          clearTimeout(connectTimer);
+          connectTimer = null;
+        }
         
+        // 断开WalletConnect连接
+        if (walletConnectProvider && walletConnectProvider.disconnect) {
+          try {
+            walletConnectProvider.disconnect();
+          } catch (e) {
+            console.log('断开连接:', e);
+          }
+        }
+        
+        // 重置变量
+        provider = null;
+        signer = null;
+        address = null;
+        walletConnectProvider = null;
+        
+        // 重置UI
+        qrcodeSection.style.display = 'none';
+        walletConnected.style.display = 'none';
+        paymentForm.style.display = 'none';
+        connectionSteps.style.display = 'block';
+        hideStatus();
+      }
+      
+      // 连接成功处理
+      async function onConnectSuccess() {
+        // 清除超时计时器
+        if (connectTimer) {
+          clearTimeout(connectTimer);
+          connectTimer = null;
+        }
+        
+        // 获取账户信息
+        const accounts = await provider.listAccounts();
+        if (!accounts || accounts.length === 0) {
+          showStatus('未找到账户，请在钱包中解锁账户', 'error');
+          resetConnection();
+          return;
+        }
+        
+        address = accounts[0];
+        
+        // 获取签名者
+        signer = provider.getSigner();
+        
+        // 获取余额和网络信息
         try {
           const balance = await provider.getBalance(address);
           const ethBalance = ethers.utils.formatEther(balance);
-          walletBalance.textContent = parseFloat(ethBalance).toFixed(6);
-          
-          // 更新网络信息
           const network = await provider.getNetwork();
+          
+          // 更新UI
+          walletAddress.textContent = formatAddress(address);
+          walletBalance.textContent = parseFloat(ethBalance).toFixed(6) + ' ETH';
           walletNetwork.textContent = formatNetwork(network.chainId.toString(16));
           
-          // 计算总费用
-          calculateTotalCost();
+          walletConnected.style.display = 'block';
+          paymentForm.style.display = 'block';
+          qrcodeSection.style.display = 'none';
+          connectionSteps.style.display = 'none';
+          showStatus('钱包连接成功', 'success');
+          
+          // 设置断开连接监听
+          if (walletConnectProvider) {
+            walletConnectProvider.on('disconnect', (error) => {
+              if (error) console.error('连接断开:', error);
+              showStatus('钱包已断开连接', 'info');
+              resetConnection();
+            });
+          } else if (window.ethereum) {
+            window.ethereum.on('disconnect', () => {
+              showStatus('钱包已断开连接', 'info');
+              resetConnection();
+            });
+            
+            window.ethereum.on('accountsChanged', (accounts) => {
+              if (!accounts || accounts.length === 0) {
+                showStatus('钱包已断开连接', 'info');
+                resetConnection();
+              }
+            });
+          }
         } catch (error) {
-          console.error('更新余额失败:', error);
-          showStatus('更新余额失败: ' + error.message, 'error');
+          console.error('获取账户信息失败:', error);
+          showStatus('获取账户信息失败: ' + error.message, 'error');
+          resetConnection();
         }
-      };
-      
-      // 计算预计总费用
-      const calculateTotalCost = async function() {
-        if (!provider) return;
-        
-        try {
-          const amount = parseFloat(amountInput.value) || 0;
-          if (amount <= 0) return;
-          
-          // 获取当前gas价格
-          const gasPrice = await provider.getGasPrice();
-          
-          // 简单转账通常需要21000 gas
-          const gasLimit = 21000;
-          
-          // 计算gas费用(ETH)
-          const gasCostWei = gasPrice.mul(gasLimit);
-          const gasCostEth = parseFloat(ethers.utils.formatEther(gasCostWei));
-          
-          // 总费用 = 转账金额 + gas费用
-          const totalCost = amount + gasCostEth;
-          
-          // 显示总费用
-          totalCostElement.textContent = totalCost.toFixed(6) + ' ETH';
-          
-          return {
-            amount: amount,
-            gasCost: gasCostEth,
-            total: totalCost
-          };
-        } catch (error) {
-          console.error('计算费用失败:', error);
-          return null;
-        }
-      };
-      
-      // 检查余额是否充足
-      const checkBalanceSufficient = async function() {
-        if (!provider || !address) return false;
-        
-        try {
-          const costInfo = await calculateTotalCost();
-          if (!costInfo) return false;
-          
-          const balance = parseFloat(ethers.utils.formatEther(await provider.getBalance(address)));
-          
-          // 检查余额是否大于总费用
-          return balance >= costInfo.total;
-        } catch (error) {
-          console.error('检查余额失败:', error);
-          return false;
-        }
-      };
-      
-      // 连接成功后的处理
-      const onWalletConnected = async function() {
-        // 隐藏二维码
-        qrcodeContainer.style.display = 'none';
-        
-        // 获取地址
-        const accounts = await provider.listAccounts();
-        address = accounts[0];
-        
-        // 显示钱包信息
-        walletAddress.textContent = formatAddress(address);
-        walletInfo.classList.remove('hidden');
-        
-        // 获取signer
-        signer = provider.getSigner();
-        
-        // 更新余额
-        await updateBalance();
-        
-        // 显示支付表单
-        paymentForm.classList.remove('hidden');
-        
-        // 显示成功信息
-        showStatus('钱包已连接，可以进行支付', 'success');
-      };
+      }
       
       // 连接MetaMask
-      connectMetamaskBtn.addEventListener('click', async function() {
-        hideStatus();
+      metamaskOption.addEventListener('click', async function() {
+        resetConnection();
+        
+        if (!isMobile) {
+          showStatus('此选项适用于手机端，请使用手机浏览器打开或选择WalletConnect', 'error');
+          return;
+        }
         
         try {
-          if (isMobile) {
-            // 手机端MetaMask需要通过deeplink
-            showStatus('正在打开MetaMask应用...', 'info');
-            
-            // 生成连接请求
-            const deepLink = `https://metamask.app.link/dapp/${window.location.href}`;
-            window.location.href = deepLink;
-            
-            // 给用户提示
-            setTimeout(() => {
-              showStatus('如果MetaMask未打开，请手动打开并连接', 'info');
-            }, 2000);
-          }
+          showStatus('正在打开MetaMask应用...', 'info');
           
-          // 检查是否有以太坊提供者
-          if (typeof window.ethereum === 'undefined') {
-            showStatus('未检测到钱包，请使用WalletConnect连接', 'error');
-            return;
-          }
+          // 移动设备上的MetaMask连接
+          const deepLink = `https://metamask.app.link/dapp/${window.location.href}`;
           
-          showStatus('正在连接MetaMask...请在钱包中授权', 'info');
+          // 创建备用链接，直接使用钱包方案
+          const universalLink = `metamask://dapp/${window.location.href}`;
           
-          // 请求连接
-          await window.ethereum.request({ method: 'eth_requestAccounts' });
+          // 尝试打开深度链接
+          window.location.href = deepLink;
           
-          // 初始化provider
-          provider = new ethers.providers.Web3Provider(window.ethereum);
-          
-          // 连接成功处理
-          await onWalletConnected();
-          
-          // 监听账户变化
-          window.ethereum.on('accountsChanged', async (accounts) => {
-            if (accounts.length > 0) {
-              address = accounts[0];
-              walletAddress.textContent = formatAddress(address);
-              await updateBalance();
+          // 5秒后检查是否有以太坊提供者
+          setTimeout(() => {
+            if (typeof window.ethereum !== 'undefined') {
+              // 已经有提供者，直接连接
+              provider = new ethers.providers.Web3Provider(window.ethereum);
+              window.ethereum.request({ method: 'eth_requestAccounts' })
+                .then(() => onConnectSuccess())
+                .catch(error => {
+                  showStatus('用户拒绝授权: ' + error.message, 'error');
+                  resetConnection();
+                });
             } else {
-              resetWalletState();
-              showStatus('钱包已断开连接', 'info');
+              // 尝试备用链接
+              window.location.href = universalLink;
+              
+              // 设置连接超时
+              connectTimer = setTimeout(() => {
+                showStatus('连接超时，请手动打开MetaMask并添加此DApp', 'error');
+                resetConnection();
+              }, CONNECT_TIMEOUT);
+              
+              showStatus('请在MetaMask中授权连接...', 'info');
             }
-          });
-          
-          // 监听网络变化
-          window.ethereum.on('chainChanged', async () => {
-            showStatus('网络已变更，正在更新信息...');
-            await updateBalance();
-            showStatus('网络信息已更新', 'success');
-          });
+          }, 5000);
           
         } catch (error) {
-          console.error('连接失败:', error);
+          console.error('MetaMask连接失败:', error);
           showStatus('连接失败: ' + error.message, 'error');
+          resetConnection();
         }
       });
       
       // 连接WalletConnect
-      connectWalletConnectBtn.addEventListener('click', async function() {
-        hideStatus();
+      walletConnectOption.addEventListener('click', async function() {
+        resetConnection();
+        
         try {
+          showStatus('正在初始化WalletConnect...', 'info');
+          
           // 创建WalletConnect提供者
           walletConnectProvider = new WalletConnectProvider.default({
-            infuraId: "8043bb2cf99347b1bfadfb233c5325c0", // 公共infura ID，可替换为自己的
-            qrcode: false // 我们将自己处理二维码显示
+            infuraId: "8043bb2cf99347b1bfadfb233c5325c0",
+            qrcode: false
           });
           
           // 启动连接
@@ -516,64 +653,82 @@
           // 创建ethers提供者
           provider = new ethers.providers.Web3Provider(walletConnectProvider);
           
-          // 生成二维码
+          // 获取二维码
           const qrcodeUrl = walletConnectProvider.wc.qrcodeUrl;
-          walletConnectQr.innerHTML = `<img src="${qrcodeUrl}" alt="WalletConnect二维码" style="width: 100%;">`;
-          qrcodeContainer.style.display = 'block';
+          qrcode.innerHTML = `<img src="${qrcodeUrl}" alt="WalletConnect二维码" style="width: 100%;">`;
           
-          // 监听连接成功事件
-          walletConnectProvider.on("connect", async (error, payload) => {
+          // 显示二维码区域
+          qrcodeSection.style.display = 'block';
+          connectionSteps.style.display = 'none';
+          showStatus('请使用钱包扫描二维码进行连接', 'info');
+          
+          // 设置连接超时
+          connectTimer = setTimeout(() => {
+            showStatus('连接超时，请刷新二维码重试', 'error');
+          }, CONNECT_TIMEOUT);
+          
+          // 监听连接事件
+          walletConnectProvider.on('connect', async (error, payload) => {
             if (error) {
-              throw error;
+              showStatus('连接失败: ' + error.message, 'error');
+              console.error('WalletConnect error:', error);
+              return;
             }
-            await onWalletConnected();
+            await onConnectSuccess();
           });
           
-          // 监听断开连接事件
-          walletConnectProvider.on("disconnect", (error, payload) => {
+          // 监听断开连接
+          walletConnectProvider.on('disconnect', (error) => {
             if (error) {
-              console.error(error);
+              showStatus('连接断开: ' + error.message, 'error');
+              console.error('WalletConnect disconnect:', error);
+            } else {
+              showStatus('连接已断开', 'info');
             }
-            resetWalletState();
-            showStatus('钱包已断开连接', 'info');
+            resetConnection();
           });
           
         } catch (error) {
-          console.error('WalletConnect连接失败:', error);
-          showStatus('连接失败: ' + error.message, 'error');
+          console.error('WalletConnect初始化失败:', error);
+          showStatus('连接初始化失败: ' + error.message, 'error');
+          resetConnection();
         }
       });
       
       // 取消连接
-      cancelConnectBtn.addEventListener('click', function() {
+      cancelBtn.addEventListener('click', resetConnection);
+      
+      // 刷新二维码
+      refreshQrBtn.addEventListener('click', async function() {
         if (walletConnectProvider) {
-          walletConnectProvider.disconnect();
+          try {
+            // 断开现有连接
+            await walletConnectProvider.disconnect();
+          } catch (e) {
+            console.log('断开现有连接:', e);
+          }
         }
-        qrcodeContainer.style.display = 'none';
-        hideStatus();
+        
+        // 重新连接
+        walletConnectOption.click();
       });
       
-      // 重置钱包状态
-      function resetWalletState() {
-        address = null;
-        provider = null;
-        signer = null;
-        walletInfo.classList.add('hidden');
-        paymentForm.classList.add('hidden');
-        txHashArea.style.display = 'none';
-      }
+      // 断开连接
+      disconnectBtn.addEventListener('click', function() {
+        showStatus('正在断开连接...', 'info');
+        resetConnection();
+      });
       
-      // 支付处理
-      payButton.addEventListener('click', async function() {
+      // 支付按钮
+      payBtn.addEventListener('click', async function() {
         if (!provider || !signer || !address) {
           showStatus('请先连接钱包', 'error');
           return;
         }
         
-        hideStatus();
-        payButton.disabled = true;
-        payButton.innerHTML = '<i class="fa fa-spinner fa-spin"></i> 处理中...';
-        txHashArea.style.display = 'none';
+        payBtn.disabled = true;
+        payBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> 处理中...';
+        showStatus('正在准备交易，请稍候...', 'info');
         
         try {
           const recipient = document.getElementById('recipient').value;
@@ -581,7 +736,7 @@
           
           // 验证输入
           if (!ethers.utils.isAddress(recipient)) {
-            showStatus('请输入有效的收款地址', 'error');
+            showStatus('无效的收款地址', 'error');
             throw new Error('无效地址');
           }
           
@@ -590,88 +745,47 @@
             throw new Error('无效金额');
           }
           
-          // 检查余额是否充足
-          const isSufficient = await checkBalanceSufficient();
-          if (!isSufficient) {
-            const costInfo = await calculateTotalCost();
-            const balance = parseFloat(walletBalance.textContent);
-            showStatus(
-              `余额不足! 所需: ${costInfo.total.toFixed(6)} ETH, 现有: ${balance.toFixed(6)} ETH`, 
-              'error'
-            );
+          // 检查余额
+          const balance = await provider.getBalance(address);
+          const amountWei = ethers.utils.parseEther(amount);
+          
+          if (balance.lt(amountWei)) {
+            showStatus('余额不足，无法完成交易', 'error');
             throw new Error('余额不足');
           }
           
-          // 获取gas价格
-          const gasPrice = await provider.getGasPrice();
-          
-          // 显示交易确认信息
+          // 估算gas
           showStatus('请在钱包中确认交易...', 'info');
           
           // 发送交易
           const tx = await signer.sendTransaction({
             to: recipient,
-            value: ethers.utils.parseEther(amount),
-            gasPrice: gasPrice,
-            gasLimit: 21000 // 简单转账固定gas limit
+            value: amountWei,
+            gasLimit: 21000 // 标准转账gas limit
           });
           
-          // 显示交易哈希
-          showTransactionHash(tx.hash);
-          showStatus('交易已发送，等待区块链确认...', 'info');
+          showStatus(`交易已发送: ${tx.hash.substring(0, 10)}...`, 'success');
           
           // 等待交易确认
           const receipt = await tx.wait();
           
           if (receipt.status === 1) {
             showStatus('交易已成功确认!', 'success');
-            // 更新余额显示
-            await updateBalance();
+            // 更新余额
+            const newBalance = await provider.getBalance(address);
+            walletBalance.textContent = parseFloat(ethers.utils.formatEther(newBalance)).toFixed(6) + ' ETH';
           } else {
             showStatus('交易失败', 'error');
           }
           
         } catch (error) {
           console.error('支付错误:', error);
-          showStatus(`操作失败: ${error.message || '未知错误'}`, 'error');
+          showStatus(`支付失败: ${error.message || '未知错误'}`, 'error');
         } finally {
-          payButton.disabled = false;
-          payButton.innerHTML = '<i class="fa fa-paper-plane"></i> 确认支付';
+          payBtn.disabled = false;
+          payBtn.innerHTML = '<i class="fa fa-paper-plane"></i> 确认支付';
         }
       });
-      
-      // 金额变化时重新计算费用
-      amountInput.addEventListener('input', calculateTotalCost);
-      
-      // 复制哈希
-      copyBtn.addEventListener('click', function() {
-        navigator.clipboard.writeText(txHash.textContent).then(function() {
-          const originalText = copyBtn.innerHTML;
-          copyBtn.innerHTML = '<i class="fa fa-check text-green-400"></i>';
-          setTimeout(function() {
-            copyBtn.innerHTML = originalText;
-          }, 2000);
-        }).catch(function() {
-          // 复制失败时的备用方案
-          const textarea = document.createElement('textarea');
-          textarea.value = txHash.textContent;
-          document.body.appendChild(textarea);
-          textarea.select();
-          document.execCommand('copy');
-          document.body.removeChild(textarea);
-          
-          const originalText = copyBtn.innerHTML;
-          copyBtn.innerHTML = '<i class="fa fa-check text-green-400"></i>';
-          setTimeout(function() {
-            copyBtn.innerHTML = originalText;
-          }, 2000);
-        });
-      });
-      
-      // 页面加载时检查是否是移动设备并给出提示
-      if (isMobile) {
-        showStatus('检测到移动设备，建议使用WalletConnect连接钱包', 'info');
-      }
     });
   </script>
 </body>
