@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MetaMask 交易拉起</title>
+    <title>MetaMask 测试网交易</title>
     <style>
         * {
             margin: 0;
@@ -13,7 +13,7 @@
         }
         
         body {
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            background: linear-gradient(135deg, #1a2a3a, #2d4a5f);
             color: #fff;
             min-height: 100vh;
             display: flex;
@@ -54,8 +54,19 @@
         }
         
         .subtitle {
-            color: #a0c4ff;
+            color: #7fdbda;
             font-size: 16px;
+        }
+        
+        .testnet-badge {
+            display: inline-block;
+            background: #ff9f43;
+            color: #2d3436;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 8px;
         }
         
         .card {
@@ -71,7 +82,7 @@
             gap: 10px;
             margin-bottom: 15px;
             font-size: 18px;
-            color: #a0c4ff;
+            color: #7fdbda;
         }
         
         .card-icon {
@@ -93,13 +104,41 @@
         }
         
         .detail-label {
-            color: #a0c4ff;
+            color: #7fdbda;
         }
         
         .address {
             font-family: monospace;
             font-size: 14px;
             word-break: break-all;
+        }
+        
+        .network-selector {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .network-option {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 8px 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 100px;
+            text-align: center;
+        }
+        
+        .network-option:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .network-option.active {
+            background: rgba(127, 219, 218, 0.3);
+            border-color: #7fdbda;
         }
         
         .buttons {
@@ -110,7 +149,7 @@
         }
         
         button {
-            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            background: linear-gradient(to right, #00b4db, #0083b0);
             color: white;
             border: none;
             border-radius: 50px;
@@ -139,36 +178,10 @@
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
         
-        .status {
-            text-align: center;
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 10px;
-            display: none;
-        }
-        
-        .status.success {
-            background: rgba(46, 204, 113, 0.2);
-            border: 1px solid rgba(46, 204, 113, 0.5);
-            display: block;
-        }
-        
-        .status.error {
-            background: rgba(231, 76, 60, 0.2);
-            border: 1px solid rgba(231, 76, 60, 0.5);
-            display: block;
-        }
-        
-        .status.pending {
-            background: rgba(241, 196, 15, 0.2);
-            border: 1px solid rgba(241, 196, 15, 0.5);
-            display: block;
-        }
-        
         .footer {
             margin-top: 30px;
             text-align: center;
-            color: #a0c4ff;
+            color: #7fdbda;
             font-size: 14px;
         }
         
@@ -183,6 +196,10 @@
             
             .card {
                 padding: 15px;
+            }
+            
+            .network-selector {
+                flex-direction: column;
             }
         }
     </style>
@@ -208,106 +225,139 @@
                     <path d="M73.625 120.571L61.7188 175.571L73.625 120.571Z" fill="#F5841F"/>
                     <path d="M138.375 120.571L150.281 175.571L138.375 120.571Z" fill="#F5841F"/>
                 </svg>
-                MetaMask 交易
+                MetaMask 测试网交易
             </h1>
-            <p class="subtitle">连接钱包并发送交易</p>
+            <p class="subtitle">发送 0.01 ETH 到指定地址</p>
+            <div class="testnet-badge">测试网模式</div>
         </header>
         
         <div class="card">
             <div class="card-title">
                 <svg class="card-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M20 7H4C2.89543 7 2 7.89543 2 9V19C2 20.1046 2.89543 21 4 21H20C21.1046 21 22 20.1046 22 19V9C22 7.89543 21.1046 7 20 7Z" stroke="#a0c4ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M16 21V5C16 4.46957 15.7893 3.96086 15.4142 3.58579C15.0391 3.21071 14.5304 3 14 3H10C9.46957 3 8.96086 3.21071 8.58579 3.58579C8.21071 3.96086 8 4.46957 8 5V21" stroke="#a0c4ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M20 7H4C2.89543 7 2 7.89543 2 9V19C2 20.1046 2.89543 21 4 21H20C21.1046 21 22 20.1046 22 19V9C22 7.89543 21.1046 7 20 7Z" stroke="#7fdbda" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M16 21V5C16 4.46957 15.7893 3.96086 15.4142 3.58579C15.0391 3.21071 14.5304 3 14 3H10C9.46957 3 8.96086 3.21071 8.58579 3.58579C8.21071 3.96086 8 4.46957 8 5V21" stroke="#7fdbda" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
                 交易详情
             </div>
             <div class="transaction-details">
                 <div class="detail-row">
                     <span class="detail-label">发送至:</span>
-                    <span class="address">0x9659c0a3A9aACCA57680093F151BE548675222E1</span>
+                    <span class="address">0x742e35Fa6633A7F6c5D1676F0bE6D6e6D4b79</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">金额:</span>
                     <span>0.01 ETH</span>
                 </div>
                 <div class="detail-row">
-                    <span class="detail-label">网络费用:</span>
-                    <span>0.0021 ETH</span>
+                    <span class="detail-label">网络:</span>
+                    <span id="selectedNetwork">Goerli 测试网</span>
                 </div>
                 <div class="detail-row">
-                    <span class="detail-label">总计:</span>
-                    <span>0.0121 ETH</span>
+                    <span class="detail-label">网络费用:</span>
+                    <span>~0.0012 ETH</span>
                 </div>
+            </div>
+            
+            <div class="card-title" style="margin-top: 20px;">
+                <svg class="card-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="#7fdbda" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M2 12H22" stroke="#7fdbda" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22C9.49872 19.2616 8.07725 15.708 8 12C8.07725 8.29203 9.49872 4.73835 12 2Z" stroke="#7fdbda" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                选择测试网络
+            </div>
+            <div class="network-selector">
+                <div class="network-option active" data-network="Goerli">Goerli</div>
+                <div class="network-option" data-network="Sepolia">Sepolia</div>
+                <div class="network-option" data-network="Mumbai">Mumbai</div>
             </div>
         </div>
         
         <div class="buttons">
-            <button id="connectWalletBtn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M20 12V8H4V12M20 12L18 14M20 12L18 10M4 12L6 14M4 12L6 10M6 20H18C19.1046 20 20 19.1046 20 18V6C20 4.89543 19.1046 4 18 4H6C4.89543 4 4 4.89543 4 6V18C4 19.1046 4.89543 20 6 20Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                连接 MetaMask 钱包
-            </button>
-            <button id="sendTransactionBtn" class="secondary">
+            <a href="https://metamask.app.link/send/0x742e35Fa6633A7F6c5D1676F0bE6D6e6D4b79@5?value=10000000000000000" id="sendTransactionBtn">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                拉起交易
+                在 MetaMask 中发送交易
+            </a>
+            <button class="secondary" id="copyAddressBtn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M16 4H18C18.5304 4 19.0391 4.21071 19.4142 4.58579C19.7893 4.96086 20 5.46957 20 6V20C20 20.5304 19.7893 21.0391 19.4142 21.4142C19.0391 21.7893 18.5304 21.7893 18 22H6C5.46957 22 4.96086 21.7893 4.58579 21.4142C4.21071 21.0391 4 20.5304 4 20V6C4 5.46957 4.21071 4.96086 4.58579 4.58579C4.96086 4.21071 5.46957 4 6 4H8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                复制收款地址
             </button>
         </div>
         
-        <div id="statusMessage" class="status">
-            交易状态将显示在这里
+        <div class="footer">
+            <p>点击按钮将打开 MetaMask 应用并预填充交易信息</p>
+            <p style="margin-top: 10px; font-size: 12px;">确保您已安装 MetaMask 移动应用并切换到正确的测试网络</p>
         </div>
-    </div>
-    
-    <div class="footer">
-        <p>确保您已安装 MetaMask 移动应用</p>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const connectWalletBtn = document.getElementById('connectWalletBtn');
+            const networkOptions = document.querySelectorAll('.network-option');
+            const selectedNetwork = document.getElementById('selectedNetwork');
             const sendTransactionBtn = document.getElementById('sendTransactionBtn');
-            const statusMessage = document.getElementById('statusMessage');
+            const copyAddressBtn = document.getElementById('copyAddressBtn');
             
-            // 模拟连接钱包功能
-            connectWalletBtn.addEventListener('click', function() {
-                statusMessage.textContent = '正在连接到 MetaMask...';
-                statusMessage.className = 'status pending';
-                
-                setTimeout(() => {
-                    statusMessage.textContent = '钱包连接成功！';
-                    statusMessage.className = 'status success';
+            // 网络选择功能
+            networkOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // 移除所有active类
+                    networkOptions.forEach(opt => opt.classList.remove('active'));
+                    // 添加active类到当前选项
+                    this.classList.add('active');
+                    // 更新显示的选中网络
+                    selectedNetwork.textContent = this.getAttribute('data-network') + ' 测试网';
                     
-                    // 启用交易按钮
-                    sendTransactionBtn.disabled = false;
-                    sendTransactionBtn.style.opacity = '1';
-                }, 1500);
+                    // 根据选择的网络更新MetaMask链接
+                    updateMetaMaskLink(this.getAttribute('data-network'));
+                });
             });
             
-            // 模拟拉起交易功能
-            sendTransactionBtn.addEventListener('click', function() {
-                statusMessage.textContent = '正在拉起交易...';
-                statusMessage.className = 'status pending';
-                
-                setTimeout(() => {
-                    // 模拟交易成功
-                    const isSuccess = Math.random() > 0.2; // 80% 成功率
+            // 复制地址功能
+            copyAddressBtn.addEventListener('click', function() {
+                const address = '0x742e35Fa6633A7F6c5D1676F0bE6D6e6D4b79';
+                navigator.clipboard.writeText(address).then(() => {
+                    // 临时更改按钮文本
+                    const originalText = copyAddressBtn.innerHTML;
+                    copyAddressBtn.innerHTML = `
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M20 6L9 17L4 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        地址已复制
+                    `;
                     
-                    if (isSuccess) {
-                        statusMessage.textContent = '交易已成功发送！';
-                        statusMessage.className = 'status success';
-                    } else {
-                        statusMessage.textContent = '交易失败，请重试';
-                        statusMessage.className = 'status error';
-                    }
-                }, 2000);
+                    setTimeout(() => {
+                        copyAddressBtn.innerHTML = originalText;
+                    }, 2000);
+                });
             });
             
-            // 初始禁用交易按钮
-            sendTransactionBtn.disabled = true;
-            sendTransactionBtn.style.opacity = '0.5';
+            // 根据选择的网络更新MetaMask链接
+            function updateMetaMaskLink(network) {
+                let chainId;
+                
+                switch(network) {
+                    case 'Goerli':
+                        chainId = 5;
+                        break;
+                    case 'Sepolia':
+                        chainId = 11155111;
+                        break;
+                    case 'Mumbai':
+                        chainId = 80001;
+                        break;
+                    default:
+                        chainId = 5; // 默认Goerli
+                }
+                
+                // 更新MetaMask链接的chainId参数
+                const baseUrl = 'https://metamask.app.link/send/0x742e35Fa6633A7F6c5D1676F0bE6D6e6D4b79';
+                sendTransactionBtn.href = `${baseUrl}@${chainId}?value=10000000000000000`;
+            }
         });
     </script>
 </body>
