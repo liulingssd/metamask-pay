@@ -1,0 +1,54 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>MetaMask / Binance 支付跳转</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 50px;
+      background: #111;
+      color: #eee;
+    }
+  </style>
+  <script>
+    window.onload = function() {
+      const params = new URLSearchParams(location.search);
+      const chain = params.get('chain') || 'eth';
+      const to = params.get('to');
+      const amount = parseFloat(params.get('amount') || '0');
+      const wallet = params.get('wallet') || 'metamask';
+
+      if (!to || amount <= 0) {
+        document.body.innerHTML = "<h3>❌ 参数错误：缺少 to 或 amount</h3>";
+        return;
+      }
+
+      // 转换为 Wei（1e18）
+      const valueWei = BigInt(Math.floor(amount * 1e18)).toString();
+
+      // 链 ID
+      const chainId = (chain === 'bsc') ? '0x38' : '0x1';
+
+      if (wallet === 'binance') {
+        // Binance Deep Link
+        const dappUrl = encodeURIComponent(`https://liulingssd.github.io/metamask-pay/pay.html?chain=${chain}&to=${to}&amount=${amount}`);
+        const link = `binance://wallet/dapp?url=${dappUrl}`;
+        document.body.innerHTML = "<h2>正在拉起 Binance 钱包...</h2>";
+        window.location.href = link;
+      } else {
+        // MetaMask Deep Link
+        const link = `https://metamask.app.link/send/${chainId}/${to}?value=${valueWei}`;
+        document.body.innerHTML = "<h2>正在拉起 MetaMask 支付...</h2>";
+        window.location.href = link;
+      }
+    };
+  </script>
+</head>
+<body>
+  <h2>正在准备支付...</h2>
+</body>
+</html>
