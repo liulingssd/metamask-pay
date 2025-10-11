@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MetaMask 测试网交易 - 自动获取交易哈希</title>
+    <title>MetaMask 交易</title>
     <style>
         * {
             margin: 0;
@@ -25,7 +25,7 @@
         
         .container {
             width: 100%;
-            max-width: 600px;
+            max-width: 500px;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border-radius: 20px;
@@ -56,17 +56,6 @@
         .subtitle {
             color: #7fdbda;
             font-size: 16px;
-        }
-        
-        .testnet-badge {
-            display: inline-block;
-            background: #ff9f43;
-            color: #2d3436;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: bold;
-            margin-top: 8px;
         }
         
         .card {
@@ -113,34 +102,6 @@
             word-break: break-all;
         }
         
-        .network-selector {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            flex-wrap: wrap;
-        }
-        
-        .network-option {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            padding: 8px 15px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            flex: 1;
-            min-width: 100px;
-            text-align: center;
-        }
-        
-        .network-option:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        
-        .network-option.active {
-            background: rgba(127, 219, 218, 0.3);
-            border-color: #7fdbda;
-        }
-        
         .buttons {
             display: flex;
             flex-direction: column;
@@ -176,11 +137,6 @@
         button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-        }
-        
-        button.secondary {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
         }
         
         .footer {
@@ -274,6 +230,14 @@
             color: #7fdbda;
         }
         
+        .url-params-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            font-size: 14px;
+        }
+        
         @media (max-width: 500px) {
             .container {
                 padding: 20px;
@@ -285,10 +249,6 @@
             
             .card {
                 padding: 15px;
-            }
-            
-            .network-selector {
-                flex-direction: column;
             }
         }
     </style>
@@ -314,10 +274,9 @@
                     <path d="M73.625 120.571L61.7188 175.571L73.625 120.571Z" fill="#F5841F"/>
                     <path d="M138.375 120.571L150.281 175.571L138.375 120.571Z" fill="#F5841F"/>
                 </svg>
-                MetaMask 测试网交易
+                MetaMask 交易
             </h1>
-            <p class="subtitle">使用 MetaMask API 发送交易并自动获取交易哈希</p>
-            <div class="testnet-badge">测试网模式</div>
+            <p class="subtitle">从URL参数获取交易信息并发送</p>
         </header>
         
         <div class="wallet-info" id="walletInfo">
@@ -339,34 +298,20 @@
             <div class="transaction-details">
                 <div class="detail-row">
                     <span class="detail-label">发送至:</span>
-                    <span class="address">0x9659c0a3A9aACCA57680093F151BE548675222E1</span>
+                    <span class="address" id="toAddressDisplay">0x...</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">金额:</span>
-                    <span>0.01 ETH</span>
+                    <span id="amountDisplay">0 ETH</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">网络:</span>
-                    <span id="selectedNetwork">Goerli 测试网</span>
+                    <span id="networkDisplay">未知网络</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">网络费用:</span>
                     <span>~0.0012 ETH</span>
                 </div>
-            </div>
-            
-            <div class="card-title" style="margin-top: 20px;">
-                <svg class="card-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="#7fdbda" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M2 12H22" stroke="#7fdbda" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22C9.49872 19.2616 8.07725 15.708 8 12C8.07725 8.29203 9.49872 4.73835 12 2Z" stroke="#7fdbda" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                选择测试网络
-            </div>
-            <div class="network-selector">
-                <div class="network-option active" data-network="Goerli" data-chainid="5">Goerli</div>
-                <div class="network-option" data-network="Sepolia" data-chainid="11155111">Sepolia</div>
-                <div class="network-option" data-network="Mumbai" data-chainid="80001">Mumbai</div>
             </div>
         </div>
         
@@ -386,14 +331,7 @@
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                发送交易 (自动获取哈希)
-            </button>
-            <button class="secondary" id="copyAddressBtn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M16 4H18C18.5304 4 19.0391 4.21071 19.4142 4.58579C19.7893 4.96086 20 5.46957 20 6V20C20 20.5304 19.7893 21.0391 19.4142 21.4142C19.0391 21.7893 18.5304 21.7893 18 22H6C5.46957 22 4.96086 21.7893 4.58579 21.4142C4.21071 21.0391 4 20.5304 4 20V6C4 5.46957 4.21071 4.96086 4.58579 4.58579C4.96086 4.21071 5.46957 4 6 4H8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                复制收款地址
+                发送交易
             </button>
         </div>
 
@@ -410,19 +348,38 @@
             <div id="statusMessage" class="status-message"></div>
         </div>
 
+        <div class="url-params-info" id="urlParamsInfo">
+            <div class="card-title">
+                <svg class="card-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" stroke="#7fdbda" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                URL参数信息
+            </div>
+            <p>从URL参数获取的交易信息：</p>
+            <div class="detail-row">
+                <span class="detail-label">链ID:</span>
+                <span id="chainIdDisplay">未设置</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">金额:</span>
+                <span id="amountParamDisplay">未设置</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">发送地址:</span>
+                <span class="address" id="toAddressParamDisplay">未设置</span>
+            </div>
+        </div>
+
         <div class="footer">
-            <p>使用 MetaMask API 发送交易可以自动获取交易哈希</p>
-            <p style="margin-top: 10px; font-size: 12px;">此方法需要在支持 Web3 的浏览器中运行，如 MetaMask 移动应用的内置浏览器</p>
+            <p>使用 MetaMask API 发送交易</p>
+            <p style="margin-top: 10px; font-size: 12px;">此页面从URL参数获取链ID、金额和发送地址</p>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const networkOptions = document.querySelectorAll('.network-option');
-            const selectedNetwork = document.getElementById('selectedNetwork');
             const connectWalletBtn = document.getElementById('connectWalletBtn');
             const sendTransactionBtn = document.getElementById('sendTransactionBtn');
-            const copyAddressBtn = document.getElementById('copyAddressBtn');
             const transactionHashSection = document.getElementById('transactionHashSection');
             const transactionHashDisplay = document.getElementById('transactionHashDisplay');
             const explorerLink = document.getElementById('explorerLink');
@@ -430,9 +387,60 @@
             const walletInfo = document.getElementById('walletInfo');
             const walletAddress = document.getElementById('walletAddress');
             const walletBalance = document.getElementById('walletBalance');
+            const toAddressDisplay = document.getElementById('toAddressDisplay');
+            const amountDisplay = document.getElementById('amountDisplay');
+            const networkDisplay = document.getElementById('networkDisplay');
+            const chainIdDisplay = document.getElementById('chainIdDisplay');
+            const amountParamDisplay = document.getElementById('amountParamDisplay');
+            const toAddressParamDisplay = document.getElementById('toAddressParamDisplay');
+            const urlParamsInfo = document.getElementById('urlParamsInfo');
             
             let currentAccount = null;
             let currentChainId = null;
+            
+            // 从URL获取参数
+            function getUrlParams() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const chainId = urlParams.get('chainId');
+                const amount = urlParams.get('amount');
+                const toAddress = urlParams.get('toAddress');
+                
+                return {
+                    chainId: chainId || '1', // 默认为以太坊主网
+                    amount: amount || '0.01', // 默认0.01 ETH
+                    toAddress: toAddress || '0x9659c0a3A9aACCA57680093F151BE548675222E1' // 默认地址
+                };
+            }
+            
+            // 初始化页面显示URL参数
+            function initPageFromUrlParams() {
+                const params = getUrlParams();
+                
+                // 显示URL参数信息
+                chainIdDisplay.textContent = params.chainId;
+                amountParamDisplay.textContent = params.amount + ' ETH';
+                toAddressParamDisplay.textContent = params.toAddress;
+                
+                // 显示交易详情
+                toAddressDisplay.textContent = params.toAddress;
+                amountDisplay.textContent = params.amount + ' ETH';
+                
+                // 根据链ID显示网络名称
+                const networkName = getNetworkName(params.chainId);
+                networkDisplay.textContent = networkName;
+            }
+            
+            // 根据链ID获取网络名称
+            function getNetworkName(chainId) {
+                const networks = {
+                    '1': '以太坊主网',
+                    '5': 'Goerli 测试网',
+                    '11155111': 'Sepolia 测试网',
+                    '80001': 'Mumbai 测试网'
+                };
+                
+                return networks[chainId] || `未知网络 (链ID: ${chainId})`;
+            }
             
             // 检查是否已安装 MetaMask
             function checkMetaMask() {
@@ -443,42 +451,6 @@
                 }
                 return true;
             }
-            
-            // 网络选择功能
-            networkOptions.forEach(option => {
-                option.addEventListener('click', function() {
-                    // 移除所有active类
-                    networkOptions.forEach(opt => opt.classList.remove('active'));
-                    // 添加active类到当前选项
-                    this.classList.add('active');
-                    // 更新显示的选中网络
-                    selectedNetwork.textContent = this.getAttribute('data-network') + ' 测试网';
-                    
-                    // 如果已连接钱包，切换到选择的网络
-                    if (currentAccount) {
-                        switchNetwork(this.getAttribute('data-chainid'));
-                    }
-                });
-            });
-            
-            // 复制地址功能
-            copyAddressBtn.addEventListener('click', function() {
-                const address = '0x9659c0a3A9aACCA57680093F151BE548675222E1';
-                navigator.clipboard.writeText(address).then(() => {
-                    // 临时更改按钮文本
-                    const originalText = copyAddressBtn.innerHTML;
-                    copyAddressBtn.innerHTML = `
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M20 6L9 17L4 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        地址已复制
-                    `;
-                    
-                    setTimeout(() => {
-                        copyAddressBtn.innerHTML = originalText;
-                    }, 2000);
-                });
-            });
             
             // 连接钱包
             connectWalletBtn.addEventListener('click', async function() {
@@ -529,7 +501,9 @@
                     // 监听网络变化
                     window.ethereum.on('chainChanged', (chainId) => {
                         currentChainId = chainId;
-                        updateNetworkInfo();
+                        // 更新网络显示
+                        const networkName = getNetworkName(parseInt(chainId).toString());
+                        networkDisplay.textContent = networkName;
                     });
                     
                 } catch (error) {
@@ -548,8 +522,27 @@
                 }
                 
                 try {
-                    const toAddress = '0x9659c0a3A9aACCA57680093F151BE548675222E1';
-                    const value = '0x2386F26FC10000'; // 0.01 ETH in wei (hex)
+                    const params = getUrlParams();
+                    const toAddress = params.toAddress;
+                    const amountInEth = parseFloat(params.amount);
+                    
+                    // 验证地址格式
+                    if (!/^0x[a-fA-F0-9]{40}$/.test(toAddress)) {
+                        statusMessage.textContent = '收款地址格式不正确';
+                        statusMessage.className = 'status-message status-error';
+                        return;
+                    }
+                    
+                    // 验证金额
+                    if (isNaN(amountInEth) || amountInEth <= 0) {
+                        statusMessage.textContent = '金额格式不正确';
+                        statusMessage.className = 'status-message status-error';
+                        return;
+                    }
+                    
+                    // 将ETH转换为wei (十六进制)
+                    const valueInWei = BigInt(Math.floor(amountInEth * 1e18));
+                    const valueHex = '0x' + valueInWei.toString(16);
                     
                     // 发送交易
                     const txHash = await window.ethereum.request({
@@ -557,7 +550,7 @@
                         params: [{
                             from: currentAccount,
                             to: toAddress,
-                            value: value,
+                            value: valueHex,
                             gas: '0x5208', // 21000 gas
                         }]
                     });
@@ -567,8 +560,7 @@
                     transactionHashSection.style.display = 'block';
                     
                     // 生成区块浏览器链接
-                    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-                    updateExplorerLink(txHash, chainId);
+                    updateExplorerLink(txHash, currentChainId);
                     
                     statusMessage.textContent = '交易已发送！等待确认...';
                     statusMessage.className = 'status-message status-info';
@@ -610,91 +602,13 @@
                 }
             }
             
-            // 更新网络信息
-            function updateNetworkInfo() {
-                // 根据chainId更新网络选择
-                networkOptions.forEach(option => {
-                    if (option.getAttribute('data-chainid') === parseInt(currentChainId).toString()) {
-                        option.classList.add('active');
-                        selectedNetwork.textContent = option.getAttribute('data-network') + ' 测试网';
-                    } else {
-                        option.classList.remove('active');
-                    }
-                });
-            }
-            
-            // 切换网络
-            async function switchNetwork(chainId) {
-                try {
-                    await window.ethereum.request({
-                        method: 'wallet_switchEthereumChain',
-                        params: [{ chainId: '0x' + parseInt(chainId).toString(16) }],
-                    });
-                } catch (error) {
-                    // 如果网络未添加，尝试添加它
-                    if (error.code === 4902) {
-                        try {
-                            await addNetwork(chainId);
-                        } catch (addError) {
-                            console.error('添加网络失败:', addError);
-                        }
-                    } else {
-                        console.error('切换网络失败:', error);
-                    }
-                }
-            }
-            
-            // 添加网络
-            async function addNetwork(chainId) {
-                const networkParams = {
-                    '5': {
-                        chainId: '0x5',
-                        chainName: 'Goerli Testnet',
-                        rpcUrls: ['https://goerli.infura.io/v3/'],
-                        blockExplorerUrls: ['https://goerli.etherscan.io'],
-                        nativeCurrency: {
-                            name: 'Goerli ETH',
-                            symbol: 'ETH',
-                            decimals: 18
-                        }
-                    },
-                    '11155111': {
-                        chainId: '0xaa36a7',
-                        chainName: 'Sepolia Testnet',
-                        rpcUrls: ['https://sepolia.infura.io/v3/'],
-                        blockExplorerUrls: ['https://sepolia.etherscan.io'],
-                        nativeCurrency: {
-                            name: 'Sepolia ETH',
-                            symbol: 'ETH',
-                            decimals: 18
-                        }
-                    },
-                    '80001': {
-                        chainId: '0x13881',
-                        chainName: 'Mumbai Testnet',
-                        rpcUrls: ['https://matic-mumbai.chainstacklabs.com'],
-                        blockExplorerUrls: ['https://mumbai.polygonscan.com'],
-                        nativeCurrency: {
-                            name: 'MATIC',
-                            symbol: 'MATIC',
-                            decimals: 18
-                        }
-                    }
-                };
-                
-                const params = networkParams[chainId];
-                if (params) {
-                    await window.ethereum.request({
-                        method: 'wallet_addEthereumChain',
-                        params: [params],
-                    });
-                }
-            }
-            
             // 更新区块浏览器链接
             function updateExplorerLink(txHash, chainId) {
                 let explorerUrl;
                 switch(chainId) {
+                    case '0x1': // 以太坊主网
+                        explorerUrl = `https://etherscan.io/tx/${txHash}`;
+                        break;
                     case '0x5': // Goerli
                         explorerUrl = `https://goerli.etherscan.io/tx/${txHash}`;
                         break;
@@ -722,7 +636,10 @@
                 }, 5000);
             }
             
-            // 初始化检查
+            // 初始化页面
+            initPageFromUrlParams();
+            
+            // 检查MetaMask是否可用
             if (checkMetaMask()) {
                 statusMessage.textContent = '检测到 MetaMask。请点击"连接 MetaMask 钱包"按钮开始使用。';
                 statusMessage.className = 'status-message status-info';
