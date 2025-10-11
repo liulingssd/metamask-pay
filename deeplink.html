@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MetaMask 交易 - 自动获取交易哈希</title>
+    <title>MetaMask 测试网交易 - 交易哈希跟踪</title>
     <style>
         * {
             margin: 0;
@@ -148,7 +148,7 @@
             margin-top: 30px;
         }
         
-        button {
+        button, .link-button {
             background: linear-gradient(to right, #00b4db, #0083b0);
             color: white;
             border: none;
@@ -162,23 +162,20 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
+            text-decoration: none;
+            text-align: center;
         }
         
-        button:hover:not(:disabled) {
+        button:hover, .link-button:hover {
             transform: translateY(-3px);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
         
-        button:active {
+        button:active, .link-button:active {
             transform: translateY(0);
         }
         
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        button.secondary {
+        button.secondary, .link-button.secondary {
             background: rgba(255, 255, 255, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
@@ -188,6 +185,88 @@
             text-align: center;
             color: #7fdbda;
             font-size: 14px;
+        }
+        
+        .link-options {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .link-option {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 10px 15px;
+            font-size: 12px;
+            font-family: monospace;
+            word-break: break-all;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .link-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .link-option-title {
+            color: #7fdbda;
+            margin-bottom: 5px;
+            font-size: 11px;
+        }
+        
+        .manual-instructions {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            font-size: 14px;
+        }
+        
+        .manual-instructions h3 {
+            color: #7fdbda;
+            margin-bottom: 10px;
+        }
+        
+        .manual-steps {
+            margin-left: 15px;
+        }
+        
+        .manual-steps li {
+            margin-bottom: 8px;
+        }
+        
+        .transaction-hash-section {
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .hash-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 12px 15px;
+            color: white;
+            font-family: monospace;
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .hash-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .explorer-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: #7fdbda;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .explorer-link:hover {
+            text-decoration: underline;
         }
         
         .status-message {
@@ -213,65 +292,6 @@
             background: rgba(52, 152, 219, 0.2);
             border: 1px solid rgba(52, 152, 219, 0.5);
             display: block;
-        }
-        
-        .status-warning {
-            background: rgba(241, 196, 15, 0.2);
-            border: 1px solid rgba(241, 196, 15, 0.5);
-            display: block;
-        }
-        
-        .transaction-hash-section {
-            margin-top: 20px;
-            display: none;
-        }
-        
-        .hash-display {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            padding: 12px 15px;
-            color: white;
-            font-family: monospace;
-            margin-top: 10px;
-            margin-bottom: 15px;
-            word-break: break-all;
-        }
-        
-        .explorer-link {
-            display: inline-block;
-            margin-top: 10px;
-            color: #7fdbda;
-            text-decoration: none;
-            font-size: 14px;
-        }
-        
-        .explorer-link:hover {
-            text-decoration: underline;
-        }
-        
-        .wallet-info {
-            display: none;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .wallet-address {
-            font-family: monospace;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 5px 10px;
-            border-radius: 5px;
-            flex: 1;
-        }
-        
-        .wallet-balance {
-            font-weight: bold;
-            color: #7fdbda;
         }
         
         @media (max-width: 500px) {
@@ -314,23 +334,15 @@
                     <path d="M73.625 120.571L61.7188 175.571L73.625 120.571Z" fill="#F5841F"/>
                     <path d="M138.375 120.571L150.281 175.571L138.375 120.571Z" fill="#F5841F"/>
                 </svg>
-                MetaMask 交易
+                MetaMask 测试网交易
             </h1>
-            <p class="subtitle">使用 MetaMask API 发送交易并自动获取交易哈希</p>
+            <p class="subtitle">发送 0.01 ETH 到指定地址并跟踪交易哈希</p>
             <div class="testnet-badge">测试网模式</div>
         </header>
         
-        <div class="wallet-info" id="walletInfo">
-            <div>
-                <div>已连接钱包</div>
-                <div class="wallet-address" id="walletAddress">0x...</div>
-            </div>
-            <div class="wallet-balance" id="walletBalance">0 ETH</div>
-        </div>
-        
         <div class="card">
             <div class="card-title">
-                <svg class="card-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org2000/svg">
+                <svg class="card-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M20 7H4C2.89543 7 2 7.89543 2 9V19C2 20.1046 2.89543 21 4 21H20C21.1046 21 22 20.1046 22 19V9C22 7.89543 21.1046 7 20 7Z" stroke="#7fdbda" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     <path d="M16 21V5C16 4.46957 15.7893 3.96086 15.4142 3.58579C15.0391 3.21071 14.5304 3 14 3H10C9.46957 3 8.96086 3.21071 8.58579 3.58579C8.21071 3.96086 8 4.46957 8 5V21" stroke="#7fdbda" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
@@ -371,22 +383,11 @@
         </div>
         
         <div class="buttons">
-            <button id="connectWalletBtn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M19.4 15C19.2663 15.4567 19.1304 15.9035 19 16.3333C18.341 18.6667 17.5 20 16 20H8C6.5 20 5.659 18.6667 5 16.3333C4.86956 15.9035 4.73371 15.4567 4.6 15" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M3 12H5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M19 12H21" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M12 3V5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M12 19V21" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                连接 MetaMask 钱包
-            </button>
-            <button id="sendTransactionBtn" disabled>
+            <button id="sendTransactionBtn">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                发送交易 (获取交易哈希)
+                在 MetaMask 中发送交易
             </button>
             <button class="secondary" id="copyAddressBtn">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -402,17 +403,43 @@
                 <svg class="card-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M9 12L11 14L22 3M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16" stroke="#7fdbda" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                交易哈希
+                交易哈希跟踪
             </div>
-            <p>交易已发送！交易哈希如下：</p>
-            <div class="hash-display" id="transactionHashDisplay"></div>
-            <a href="#" target="_blank" id="explorerLink" class="explorer-link">在区块浏览器中查看交易</a>
+            <p>请在MetaMask中发送交易后，复制交易哈希并粘贴到这里：</p>
+            <input type="text" class="hash-input" id="transactionHashInput" placeholder="输入交易哈希 (0x...)">
+            <button class="secondary" id="trackTransactionBtn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                跟踪交易状态
+            </button>
+            <a href="#" target="_blank" id="explorerLink" class="explorer-link" style="display: none;">在区块浏览器中查看交易</a>
             <div id="statusMessage" class="status-message"></div>
         </div>
 
+        <div class="card">
+            <div class="card-title">
+                <svg class="card-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 16V12M12 8H12.01M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z" stroke="#7fdbda" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                如何获取交易哈希
+            </div>
+            <div class="manual-instructions">
+                <ol class="manual-steps">
+                    <li>在MetaMask中发送交易后，返回交易历史页面</li>
+                    <li>找到您刚刚发送的交易</li>
+                    <li>点击交易查看详情</li>
+                    <li>复制交易哈希（以0x开头的长字符串）</li>
+                    <li>将交易哈希粘贴到上方的输入框中</li>
+                    <li>点击"跟踪交易状态"按钮查看交易详情</li>
+                </ol>
+            </div>
+        </div>
+        
         <div class="footer">
-            <p>使用 MetaMask API 发送交易可以自动获取交易哈希</p>
-            <p style="margin-top: 10px; font-size: 12px;">此方法需要在支持 Web3 的浏览器中运行，如 MetaMask 移动应用的内置浏览器</p>
+            <p>交易哈希是跟踪区块链交易状态的唯一标识符</p>
+            <p style="margin-top: 10px; font-size: 12px;">通过交易哈希，您可以在区块浏览器中查看交易确认状态和详情</p>
         </div>
     </div>
 
@@ -420,29 +447,13 @@
         document.addEventListener('DOMContentLoaded', function() {
             const networkOptions = document.querySelectorAll('.network-option');
             const selectedNetwork = document.getElementById('selectedNetwork');
-            const connectWalletBtn = document.getElementById('connectWalletBtn');
             const sendTransactionBtn = document.getElementById('sendTransactionBtn');
             const copyAddressBtn = document.getElementById('copyAddressBtn');
             const transactionHashSection = document.getElementById('transactionHashSection');
-            const transactionHashDisplay = document.getElementById('transactionHashDisplay');
+            const transactionHashInput = document.getElementById('transactionHashInput');
+            const trackTransactionBtn = document.getElementById('trackTransactionBtn');
             const explorerLink = document.getElementById('explorerLink');
             const statusMessage = document.getElementById('statusMessage');
-            const walletInfo = document.getElementById('walletInfo');
-            const walletAddress = document.getElementById('walletAddress');
-            const walletBalance = document.getElementById('walletBalance');
-            
-            let currentAccount = null;
-            let currentChainId = null;
-            
-            // 检查是否已安装 MetaMask
-            function checkMetaMask() {
-                if (typeof window.ethereum === 'undefined') {
-                    statusMessage.textContent = '未检测到 MetaMask。请安装 MetaMask 或使用 MetaMask 移动应用的内置浏览器访问此页面。';
-                    statusMessage.className = 'status-message status-error';
-                    return false;
-                }
-                return true;
-            }
             
             // 网络选择功能
             networkOptions.forEach(option => {
@@ -453,11 +464,6 @@
                     this.classList.add('active');
                     // 更新显示的选中网络
                     selectedNetwork.textContent = this.getAttribute('data-network') + ' 测试网';
-                    
-                    // 如果已连接钱包，切换到选择的网络
-                    if (currentAccount) {
-                        switchNetwork(this.getAttribute('data-chainid'));
-                    }
                 });
             });
             
@@ -480,253 +486,101 @@
                 });
             });
             
-            // 连接钱包
-            connectWalletBtn.addEventListener('click', async function() {
-                if (!checkMetaMask()) return;
+            // 发送交易功能
+            sendTransactionBtn.addEventListener('click', function() {
+                const chainId = document.querySelector('.network-option.active').getAttribute('data-chainid');
+                const address = '0x9659c0a3A9aACCA57680093F151BE548675222E1';
+                const valueHex = '0x2386F26FC10000'; // 0.01 ETH in wei (hex)
                 
-                try {
-                    // 请求账户访问
-                    const accounts = await window.ethereum.request({ 
-                        method: 'eth_requestAccounts' 
-                    });
-                    
-                    if (accounts.length === 0) {
-                        statusMessage.textContent = '未找到任何账户。请确保 MetaMask 已解锁。';
-                        statusMessage.className = 'status-message status-error';
-                        return;
-                    }
-                    
-                    currentAccount = accounts[0];
-                    updateWalletInfo();
-                    
-                    // 获取当前网络
-                    currentChainId = await window.ethereum.request({ 
-                        method: 'eth_chainId' 
-                    });
-                    
-                    // 启用发送交易按钮
-                    sendTransactionBtn.disabled = false;
-                    
-                    statusMessage.textContent = '钱包连接成功！';
-                    statusMessage.className = 'status-message status-success';
-                    
-                    // 监听账户变化
-                    window.ethereum.on('accountsChanged', (accounts) => {
-                        if (accounts.length === 0) {
-                            // 用户断开连接
-                            currentAccount = null;
-                            walletInfo.style.display = 'none';
-                            sendTransactionBtn.disabled = true;
-                            statusMessage.textContent = '钱包已断开连接';
-                            statusMessage.className = 'status-message status-warning';
-                        } else {
-                            // 切换账户
-                            currentAccount = accounts[0];
-                            updateWalletInfo();
-                        }
-                    });
-                    
-                    // 监听网络变化
-                    window.ethereum.on('chainChanged', (chainId) => {
-                        currentChainId = chainId;
-                        updateNetworkInfo();
-                    });
-                    
-                } catch (error) {
-                    console.error('连接钱包失败:', error);
-                    statusMessage.textContent = '连接钱包失败: ' + error.message;
-                    statusMessage.className = 'status-message status-error';
-                }
+                // 尝试使用标准MetaMask深度链接
+                const metamaskLink = `https://metamask.app.link/send/${address}@${chainId}?value=${valueHex}`;
+                
+                // 显示交易哈希跟踪部分
+                transactionHashSection.style.display = 'block';
+                
+                // 滚动到交易哈希部分
+                transactionHashSection.scrollIntoView({ behavior: 'smooth' });
+                
+                // 显示提示信息
+                statusMessage.textContent = '请在MetaMask中完成交易后，返回此页面并输入交易哈希以跟踪状态。';
+                statusMessage.className = 'status-message status-info';
+                
+                // 打开MetaMask链接
+                window.location.href = metamaskLink;
             });
             
-            // 发送交易
-            sendTransactionBtn.addEventListener('click', async function() {
-                if (!currentAccount) {
-                    statusMessage.textContent = '请先连接钱包';
+            // 跟踪交易功能
+            trackTransactionBtn.addEventListener('click', function() {
+                const txHash = transactionHashInput.value.trim();
+                const chainId = document.querySelector('.network-option.active').getAttribute('data-chainid');
+                
+                if (!txHash) {
+                    statusMessage.textContent = '请输入有效的交易哈希';
                     statusMessage.className = 'status-message status-error';
                     return;
                 }
                 
-                try {
-                    const toAddress = '0x9659c0a3A9aACCA57680093F151BE548675222E1';
-                    const value = '0x2386F26FC10000'; // 0.01 ETH in wei (hex)
-                    
-                    // 发送交易
-                    const txHash = await window.ethereum.request({
-                        method: 'eth_sendTransaction',
-                        params: [{
-                            from: currentAccount,
-                            to: toAddress,
-                            value: value,
-                            gas: '0x5208', // 21000 gas
-                        }]
-                    });
-                    
-                    // 显示交易哈希
-                    transactionHashDisplay.textContent = txHash;
-                    transactionHashSection.style.display = 'block';
-                    
-                    // 生成区块浏览器链接
-                    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-                    updateExplorerLink(txHash, chainId);
-                    
-                    statusMessage.textContent = '交易已发送！等待确认...';
-                    statusMessage.className = 'status-message status-info';
-                    
-                    // 监听交易确认
-                    listenForTransactionConfirmation(txHash);
-                    
-                } catch (error) {
-                    console.error('发送交易失败:', error);
-                    statusMessage.textContent = '发送交易失败: ' + error.message;
+                if (!txHash.startsWith('0x') || txHash.length !== 66) {
+                    statusMessage.textContent = '交易哈希格式不正确，应以0x开头且长度为66字符';
                     statusMessage.className = 'status-message status-error';
+                    return;
                 }
-            });
-            
-            // 更新钱包信息
-            function updateWalletInfo() {
-                if (currentAccount) {
-                    walletAddress.textContent = currentAccount;
-                    walletInfo.style.display = 'flex';
-                    
-                    // 获取余额
-                    getBalance(currentAccount);
-                }
-            }
-            
-            // 获取余额
-            async function getBalance(account) {
-                try {
-                    const balance = await window.ethereum.request({
-                        method: 'eth_getBalance',
-                        params: [account, 'latest']
-                    });
-                    
-                    // 将余额从wei转换为ETH
-                    const balanceInEth = parseInt(balance, 16) / 1e18;
-                    walletBalance.textContent = balanceInEth.toFixed(4) + ' ETH';
-                } catch (error) {
-                    console.error('获取余额失败:', error);
-                }
-            }
-            
-            // 更新网络信息
-            function updateNetworkInfo() {
-                // 根据chainId更新网络选择
-                networkOptions.forEach(option => {
-                    if (option.getAttribute('data-chainid') === parseInt(currentChainId).toString()) {
-                        option.classList.add('active');
-                        selectedNetwork.textContent = option.getAttribute('data-network') + ' 测试网';
-                    } else {
-                        option.classList.remove('active');
-                    }
-                });
-            }
-            
-            // 切换网络
-            async function switchNetwork(chainId) {
-                try {
-                    await window.ethereum.request({
-                        method: 'wallet_switchEthereumChain',
-                        params: [{ chainId: '0x' + parseInt(chainId).toString(16) }],
-                    });
-                } catch (error) {
-                    // 如果网络未添加，尝试添加它
-                    if (error.code === 4902) {
-                        try {
-                            await addNetwork(chainId);
-                        } catch (addError) {
-                            console.error('添加网络失败:', addError);
-                        }
-                    } else {
-                        console.error('切换网络失败:', error);
-                    }
-                }
-            }
-            
-            // 添加网络
-            async function addNetwork(chainId) {
-                const networkParams = {
-                    '5': {
-                        chainId: '0x5',
-                        chainName: 'Goerli Testnet',
-                        rpcUrls: ['https://goerli.infura.io/v3/'],
-                        blockExplorerUrls: ['https://goerli.etherscan.io'],
-                        nativeCurrency: {
-                            name: 'Goerli ETH',
-                            symbol: 'ETH',
-                            decimals: 18
-                        }
-                    },
-                    '11155111': {
-                        chainId: '0xaa36a7',
-                        chainName: 'Sepolia Testnet',
-                        rpcUrls: ['https://sepolia.infura.io/v3/'],
-                        blockExplorerUrls: ['https://sepolia.etherscan.io'],
-                        nativeCurrency: {
-                            name: 'Sepolia ETH',
-                            symbol: 'ETH',
-                            decimals: 18
-                        }
-                    },
-                    '80001': {
-                        chainId: '0x13881',
-                        chainName: 'Mumbai Testnet',
-                        rpcUrls: ['https://matic-mumbai.chainstacklabs.com'],
-                        blockExplorerUrls: ['https://mumbai.polygonscan.com'],
-                        nativeCurrency: {
-                            name: 'MATIC',
-                            symbol: 'MATIC',
-                            decimals: 18
-                        }
-                    }
-                };
                 
-                const params = networkParams[chainId];
-                if (params) {
-                    await window.ethereum.request({
-                        method: 'wallet_addEthereumChain',
-                        params: [params],
-                    });
-                }
-            }
-            
-            // 更新区块浏览器链接
-            function updateExplorerLink(txHash, chainId) {
+                // 根据网络生成区块浏览器链接
                 let explorerUrl;
                 switch(chainId) {
-                    case '0x5': // Goerli
+                    case '5': // Goerli
                         explorerUrl = `https://goerli.etherscan.io/tx/${txHash}`;
                         break;
-                    case '0xaa36a7': // Sepolia
+                    case '11155111': // Sepolia
                         explorerUrl = `https://sepolia.etherscan.io/tx/${txHash}`;
                         break;
-                    case '0x13881': // Mumbai
+                    case '80001': // Mumbai
                         explorerUrl = `https://mumbai.polygonscan.com/tx/${txHash}`;
                         break;
                     default:
                         explorerUrl = `https://etherscan.io/tx/${txHash}`;
                 }
                 
+                // 更新浏览器链接
                 explorerLink.href = explorerUrl;
-            }
+                explorerLink.style.display = 'inline-block';
+                
+                // 显示成功消息
+                statusMessage.textContent = '交易哈希有效！点击上方链接在区块浏览器中查看交易详情。';
+                statusMessage.className = 'status-message status-success';
+                
+                // 模拟API调用检查交易状态（实际应用中应调用真实API）
+                simulateTransactionCheck(txHash, chainId);
+            });
             
-            // 监听交易确认
-            function listenForTransactionConfirmation(txHash) {
-                // 在实际应用中，这里应该使用 WebSocket 或轮询来检查交易状态
-                // 这里我们简单模拟确认过程
+            // 模拟交易状态检查
+            function simulateTransactionCheck(txHash, chainId) {
+                // 在实际应用中，这里应该调用区块链API检查交易状态
+                // 例如使用Etherscan API或Alchemy API
                 
                 setTimeout(() => {
-                    statusMessage.textContent = '交易已确认！点击上方链接在区块浏览器中查看详情。';
-                    statusMessage.className = 'status-message status-success';
-                }, 5000);
+                    // 模拟API响应
+                    const isConfirmed = Math.random() > 0.3; // 70%确认率
+                    
+                    if (isConfirmed) {
+                        statusMessage.textContent = `交易已确认！点击上方链接在区块浏览器中查看详情。`;
+                        statusMessage.className = 'status-message status-success';
+                    } else {
+                        statusMessage.textContent = `交易仍在处理中，请稍后刷新查看状态。`;
+                        statusMessage.className = 'status-message status-info';
+                    }
+                }, 2000);
             }
             
-            // 初始化检查
-            if (checkMetaMask()) {
-                statusMessage.textContent = '检测到 MetaMask。请点击"连接 MetaMask 钱包"按钮开始使用。';
-                statusMessage.className = 'status-message status-info';
-            }
+            // 交易哈希输入框粘贴事件
+            transactionHashInput.addEventListener('paste', function(e) {
+                // 允许粘贴，不做特殊处理
+                setTimeout(() => {
+                    // 粘贴后自动选中所有文本
+                    this.select();
+                }, 10);
+            });
         });
     </script>
 </body>
