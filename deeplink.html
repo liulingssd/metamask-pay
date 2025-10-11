@@ -2,58 +2,237 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>加密支付 - 离线支持版</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>移动加密支付</title>
+  <!-- 引入必要库 -->
+  <script src="ethers-5.6.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
   
-  <!-- 主要CDN -->
-  <script src="https://unpkg.com/ethers@5.6.0/dist/ethers.umd.min.js" onload="window.ethersLoaded = true"></script>
-  
   <style>
-    .glass {
-      background: rgba(30, 41, 59, 0.7);
-      backdrop-filter: blur(10px);
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
-    .status-success { background-color: rgba(34, 197, 94, 0.2); border: 1px solid #22c55e; color: #22c55e; }
-    .status-error { background-color: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #ef4444; }
-    .status-info { background-color: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: #3b82f6; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #1a1a2e;
+      color: #ffffff;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+      color: #4fd1c5;
+    }
+    .card {
+      background-color: #16213e;
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #a9bcd0;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    input, select {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid #253b56;
+      border-radius: 8px;
+      background-color: #0f3460;
+      color: #ffffff;
+      font-size: 1rem;
+    }
+    button {
+      background-color: #4fd1c5;
+      color: #1a202c;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    button:hover {
+      background-color: #38b2ac;
+      transform: translateY(-2px);
+    }
+    button:disabled {
+      background-color: #4a5568;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .wallet-options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .status {
+      padding: 14px;
+      border-radius: 8px;
+      margin-top: 15px;
+      display: none;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+    .status-info {
+      background-color: rgba(59, 130, 246, 0.2);
+      border: 1px solid #3b82f6;
+      color: #93c5fd;
+    }
+    .status-success {
+      background-color: rgba(34, 197, 94, 0.2);
+      border: 1px solid #22c55e;
+      color: #a7f3d0;
+    }
+    .status-error {
+      background-color: rgba(239, 68, 68, 0.2);
+      border: 1px solid #ef4444;
+      color: #fecaca;
+    }
+    .wallet-info {
+      margin-top: 15px;
+      padding: 14px;
+      background-color: #0f3460;
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+    .wallet-info p {
+      margin-bottom: 8px;
+    }
+    .tx-hash {
+      margin-top: 15px;
+      padding: 14px;
+      background-color: #0f3460;
+      border-radius: 8px;
+      display: none;
+    }
+    .tx-hash h4 {
+      margin-bottom: 10px;
+      color: #4fd1c5;
+    }
+    .qrcode-container {
+      display: none;
+      margin: 20px auto;
+      text-align: center;
+    }
+    #walletConnectQr {
+      max-width: 250px;
+      margin: 0 auto 15px;
+      padding: 10px;
+      background-color: white;
+      border-radius: 8px;
+    }
+    .instruction {
+      background-color: rgba(251, 191, 36, 0.1);
+      border: 1px solid #f59e0b;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+      color: #fde68a;
+    }
+    .instruction h3 {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-size: 1rem;
+    }
+    .address-short {
+      font-family: monospace;
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .cost-info {
+      margin-top: 15px;
+      padding: 12px;
+      background-color: #1a3a63;
+      border-radius: 8px;
+      font-size: 0.85rem;
+    }
   </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen p-4">
-  <div class="container mx-auto max-w-2xl">
-    <header class="text-center mb-6">
-      <h1 class="text-2xl md:text-3xl font-bold mb-2 text-blue-400">加密货币支付</h1>
-      <p class="text-gray-400">离线支持版本 - 解决ethers.js加载问题</p>
+<body>
+  <div class="container">
+    <header>
+      <h1>移动加密支付</h1>
+      <p style="color: #a9bcd0;">通过手机钱包安全支付</p>
     </header>
-
-    <div class="glass rounded-xl p-5 shadow-lg mb-6">
-      <!-- 库加载状态 -->
-      <div id="libStatus" class="p-3 rounded mb-4 hidden">
-        <div class="flex items-center">
-          <i id="libIcon" class="fa fa-circle-o-notch fa-spin mr-2"></i>
-          <span id="libMessage">正在加载必要组件...</span>
-        </div>
+    
+    <div class="card">
+      <div class="instruction">
+        <h3><i class="fa fa-mobile" style="font-size: 1.2rem;"></i> 手机支付指南</h3>
+        <p>1. 选择您的钱包类型</p>
+        <p>2. 按照提示连接钱包</p>
+        <p>3. 输入金额并确认支付</p>
       </div>
       
-      <form id="paymentForm" class="space-y-4">
-        <div>
-          <label class="block text-sm text-gray-400 mb-1">收款地址</label>
+      <div class="wallet-options">
+        <button type="button" id="connectMetamask">
+          <i class="fa fa-metamask"></i> 连接MetaMask
+        </button>
+        <button type="button" id="connectWalletConnect">
+          <i class="fa fa-qrcode"></i> WalletConnect连接
+        </button>
+      </div>
+      
+      <div id="walletInfo" class="wallet-info hidden">
+        <p><strong>钱包地址:</strong> <span id="walletAddress" class="address-short"></span></p>
+        <p><strong>余额:</strong> <span id="walletBalance"></span> ETH</p>
+        <p><strong>网络:</strong> <span id="walletNetwork"></span></p>
+      </div>
+      
+      <div class="qrcode-container" id="qrcodeContainer">
+        <div id="walletConnectQr"></div>
+        <p style="color: #a9bcd0; font-size: 0.9rem;">请用钱包扫描二维码连接</p>
+        <button type="button" id="cancelConnect" style="margin-top: 10px; background-color: #4a5568;">
+          <i class="fa fa-times"></i> 取消连接
+        </button>
+      </div>
+      
+      <form id="paymentForm" class="hidden">
+        <div class="form-group">
+          <label for="recipient">收款地址</label>
           <input 
             type="text" 
             id="recipient" 
-            class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 text-white"
             value="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
             required
           >
         </div>
         
-        <div>
-          <label class="block text-sm text-gray-400 mb-1">金额 (ETH)</label>
+        <div class="form-group">
+          <label for="amount">转账金额 (ETH)</label>
           <input 
             type="number" 
             id="amount" 
-            class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 text-white"
             value="0.01" 
             min="0.001" 
             step="0.001"
@@ -61,295 +240,438 @@
           >
         </div>
         
-        <div>
-          <label class="block text-sm text-gray-400 mb-1">选择钱包</label>
-          <select id="wallet" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 text-white">
-            <option value="metamask">MetaMask</option>
-            <option value="binance">币安钱包</option>
-          </select>
+        <div class="cost-info">
+          <p><strong>预计总费用:</strong> <span id="totalCost">0.011 ETH</span></p>
+          <p>包含转账金额 + Gas费用</p>
         </div>
         
-        <button 
-          type="button" 
-          id="payButton" 
-          class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors mt-4"
-          disabled
-        >
-          <i class="fa fa-paper-plane mr-2"></i> 立即支付
+        <button type="button" id="payButton">
+          <i class="fa fa-paper-plane"></i> 确认支付
         </button>
       </form>
       
-      <!-- 状态区域 -->
-      <div id="status" class="mt-4 p-3 rounded hidden"></div>
+      <div id="status" class="status"></div>
       
-      <!-- 交易哈希区域 -->
-      <div id="txHashArea" class="mt-4 p-3 rounded bg-gray-800 hidden">
-        <h4 class="text-green-400 font-medium mb-2">交易哈希</h4>
-        <div class="flex">
-          <span id="txHash" class="text-sm text-blue-400 break-all flex-1"></span>
-          <button id="copyBtn" class="ml-2 px-2 text-gray-400 hover:text-blue-400">
+      <div class="tx-hash" id="txHashArea">
+        <h4>交易哈希</h4>
+        <div style="display: flex; align-items: center;">
+          <span id="txHash" style="word-break: break-all; flex: 1; font-family: monospace; font-size: 0.85rem;"></span>
+          <button id="copyBtn" style="width: auto; padding: 6px 10px; margin-left: 10px;">
             <i class="fa fa-copy"></i>
           </button>
         </div>
-      </div>
-    </div>
-    
-    <!-- 离线解决方案 -->
-    <div class="glass rounded-xl p-5 mb-6">
-      <h3 class="text-lg font-medium text-yellow-400 mb-3 flex items-center">
-        <i class="fa fa-exclamation-triangle mr-2"></i> 解决ethers.js加载失败
-      </h3>
-      
-      <div id="offlineGuide" class="text-sm text-gray-300 space-y-3">
-        <p>如果您看到"加载失败"提示，请尝试以下解决方案：</p>
-        
-        <div class="p-3 bg-gray-800 rounded-lg">
-          <h4 class="text-blue-400 font-medium mb-2">方案1：手动下载并使用本地文件</h4>
-          <ol class="list-decimal list-inside space-y-2">
-            <li>下载ethers.js文件: <a href="https://cdn.ethers.io/lib/ethers-5.6.umd.min.js" class="text-blue-400 hover:underline" download>点击下载</a></li>
-            <li>将下载的文件保存在与本HTML文件相同的文件夹中</li>
-            <li>将本页面中加载ethers的代码改为:
-              <div class="bg-gray-900 p-2 rounded mt-1 text-xs">
-                &lt;script src="ethers-5.6.umd.min.js"&gt;&lt;/script&gt;
-              </div>
-            </li>
-            <li>重新打开本页面</li>
-          </ol>
-        </div>
-        
-        <div class="p-3 bg-gray-800 rounded-lg">
-          <h4 class="text-blue-400 font-medium mb-2">方案2：检查网络连接</h4>
-          <ul class="list-disc list-inside space-y-1">
-            <li>确保您的网络连接正常</li>
-            <li>尝试关闭VPN或切换网络</li>
-            <li>检查防火墙设置，确保允许访问CDN</li>
-            <li>尝试使用不同的浏览器</li>
-          </ul>
-        </div>
-      </div>
-      
-      <!-- 网络检测工具 -->
-      <div class="mt-4 p-3 bg-gray-800 rounded-lg">
-        <h4 class="text-blue-400 font-medium mb-2">CDN连接检测</h4>
-        <button id="testCdnBtn" class="text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded">
-          检测CDN连接
-        </button>
-        <div id="cdnTestResult" class="mt-2 text-sm hidden"></div>
+        <a id="explorerLink" href="" target="_blank" style="display: block; margin-top: 10px; color: #4fd1c5; font-size: 0.85rem;">
+          在浏览器中查看
+        </a>
       </div>
     </div>
   </div>
 
   <script>
-    // 全局变量
-    let retryCount = 0;
-    const maxRetries = 3;
-    
-    // DOM元素
-    const payButton = document.getElementById('payButton');
-    const libStatus = document.getElementById('libStatus');
-    const libIcon = document.getElementById('libIcon');
-    const libMessage = document.getElementById('libMessage');
-    const status = document.getElementById('status');
-    const txHashArea = document.getElementById('txHashArea');
-    const txHash = document.getElementById('txHash');
-    const copyBtn = document.getElementById('copyBtn');
-    const testCdnBtn = document.getElementById('testCdnBtn');
-    const cdnTestResult = document.getElementById('cdnTestResult');
-    
-    // 显示库加载状态
-    function showLibStatus(message, type = 'info') {
-      libStatus.classList.remove('hidden', 'status-success', 'status-error', 'status-info');
-      libStatus.classList.add(`status-${type}`);
-      libMessage.textContent = message;
+    document.addEventListener('DOMContentLoaded', function() {
+      // 全局变量
+      let provider;
+      let signer;
+      let address;
+      let walletConnectProvider;
+      let isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
       
-      // 更新图标
-      libIcon.className = '';
-      if (type === 'info') {
-        libIcon.className = 'fa fa-circle-o-notch fa-spin mr-2';
-      } else if (type === 'success') {
-        libIcon.className = 'fa fa-check mr-2';
-      } else if (type === 'error') {
-        libIcon.className = 'fa fa-exclamation-circle mr-2';
-      }
-    }
-    
-    // 显示状态消息
-    function showStatus(message, isError = false) {
-      status.textContent = message;
-      status.classList.remove('hidden', 'status-success', 'status-error', 'status-info');
-      status.classList.add(isError ? 'status-error' : 'status-info');
-      txHashArea.classList.add('hidden');
-    }
-    
-    // 显示交易哈希
-    function showTransactionHash(hash) {
-      txHash.textContent = hash;
-      txHashArea.classList.remove('hidden');
-      status.classList.remove('hidden', 'status-success', 'status-error', 'status-info');
-      status.classList.add('status-success');
-      status.textContent = '交易已发送，等待确认';
-    }
-    
-    // 检查ethers是否加载
-    function checkEthers() {
-      return typeof window.ethers !== 'undefined';
-    }
-    
-    // 尝试加载备用CDN
-    function loadBackupCDN() {
-      if (retryCount >= maxRetries) return false;
+      // DOM元素
+      const connectMetamaskBtn = document.getElementById('connectMetamask');
+      const connectWalletConnectBtn = document.getElementById('connectWalletConnect');
+      const cancelConnectBtn = document.getElementById('cancelConnect');
+      const payButton = document.getElementById('payButton');
+      const status = document.getElementById('status');
+      const txHashArea = document.getElementById('txHashArea');
+      const txHash = document.getElementById('txHash');
+      const copyBtn = document.getElementById('copyBtn');
+      const explorerLink = document.getElementById('explorerLink');
+      const walletInfo = document.getElementById('walletInfo');
+      const walletAddress = document.getElementById('walletAddress');
+      const walletBalance = document.getElementById('walletBalance');
+      const walletNetwork = document.getElementById('walletNetwork');
+      const paymentForm = document.getElementById('paymentForm');
+      const amountInput = document.getElementById('amount');
+      const totalCostElement = document.getElementById('totalCost');
+      const qrcodeContainer = document.getElementById('qrcodeContainer');
+      const walletConnectQr = document.getElementById('walletConnectQr');
       
-      retryCount++;
-      showLibStatus(`主CDN加载失败，尝试备用CDN (${retryCount}/${maxRetries})...`);
+      // 显示状态
+      const showStatus = function(message, type = 'info') {
+        status.textContent = message;
+        status.className = `status status-${type}`;
+        status.style.display = 'block';
+      };
       
-      return new Promise((resolve) => {
-        const script = document.createElement('script');
-        script.src = 'https://unpkg.com/ethers@5.6.umd.min.js';
+      // 隐藏状态
+      const hideStatus = function() {
+        status.style.display = 'none';
+      };
+      
+      // 显示交易哈希
+      const showTransactionHash = function(hash) {
+        txHash.textContent = hash;
+        txHashArea.style.display = 'block';
         
-        script.onload = () => {
-          showLibStatus('ethers.js加载成功', 'success');
-          payButton.disabled = false;
-          resolve(true);
+        // 设置区块链浏览器链接
+        let explorerUrl = `https://etherscan.io/tx/${hash}`;
+        if (walletNetwork.textContent.includes('BSC')) {
+          explorerUrl = `https://bscscan.com/tx/${hash}`;
+        } else if (walletNetwork.textContent.includes('Polygon')) {
+          explorerUrl = `https://polygonscan.com/tx/${hash}`;
+        }
+        explorerLink.href = explorerUrl;
+      };
+      
+      // 格式化地址显示
+      const formatAddress = function(addr) {
+        return addr.substring(0, 6) + '...' + addr.substring(38);
+      };
+      
+      // 格式化网络名称
+      const formatNetwork = function(chainId) {
+        const networks = {
+          '0x1': '以太坊主网',
+          '0x38': '币安智能链',
+          '0x89': 'Polygon主网',
+          '0x5': 'Goerli测试网'
         };
+        return networks[chainId] || `未知网络 (${chainId})`;
+      };
+      
+      // 更新余额显示
+      const updateBalance = async function() {
+        if (!provider || !address) return;
         
-        script.onerror = () => {
-          if (retryCount < maxRetries) {
-            setTimeout(() => resolve(loadBackupCDN()), 2000);
-          } else {
-            showLibStatus('所有CDN均加载失败，请尝试离线方案', 'error');
-            resolve(false);
-          }
-        };
-        
-        document.head.appendChild(script);
-      });
-    }
-    
-    // 检测CDN连接
-    async function testCDNConnections() {
-      testCdnBtn.disabled = true;
-      testCdnBtn.textContent = '检测中...';
-      cdnTestResult.classList.remove('hidden', 'status-success', 'status-error', 'status-info');
-      cdnTestResult.classList.add('status-info');
-      cdnTestResult.innerHTML = '<i class="fa fa-circle-o-notch fa-spin mr-1"></i> 正在检测CDN连接...';
-      
-      const cdnList = [
-        { name: '主CDN', url: 'https://cdn.ethers.io/lib/ethers-5.6.umd.min.js' },
-        { name: '备用CDN', url: 'https://unpkg.com/ethers@5.6.umd.min.js' }
-      ];
-      
-      let results = '';
-      let allFailed = true;
-      
-      for (const cdn of cdnList) {
         try {
-          const response = await fetch(cdn.url, { method: 'HEAD' });
-          results += `<div><i class="fa fa-check text-green-400 mr-1"></i> ${cdn.name}: 连接成功</div>`;
-          allFailed = false;
-        } catch (error) {
-          results += `<div><i class="fa fa-times text-red-400 mr-1"></i> ${cdn.name}: 连接失败</div>`;
-        }
-      }
-      
-      cdnTestResult.innerHTML = results;
-      cdnTestResult.classList.remove('status-info', 'status-success', 'status-error');
-      cdnTestResult.classList.add(allFailed ? 'status-error' : 'status-success');
-      
-      testCdnBtn.disabled = false;
-      testCdnBtn.textContent = '重新检测';
-    }
-    
-    // 支付处理
-    async function processPayment() {
-      if (!checkEthers()) {
-        showStatus('ethers.js未加载，请解决加载问题后重试', true);
-        return;
-      }
-      
-      payButton.disabled = true;
-      payButton.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i> 处理中...';
-      
-      try {
-        const recipient = document.getElementById('recipient').value;
-        const amount = document.getElementById('amount').value;
-        const walletType = document.getElementById('wallet').value;
-        
-        // 验证输入
-        if (!window.ethers.utils.isAddress(recipient)) {
-          showStatus('无效的收款地址', true);
-          throw new Error('无效地址');
-        }
-        
-        if (isNaN(amount) || parseFloat(amount) <= 0) {
-          showStatus('请输入有效的金额', true);
-          throw new Error('无效金额');
-        }
-        
-        // 检查钱包
-        const walletNames = { metamask: 'MetaMask', binance: '币安钱包' };
-        const walletExists = walletType === 'metamask' 
-          ? (typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask)
-          : (typeof window.BinanceChain !== 'undefined');
+          const balance = await provider.getBalance(address);
+          const ethBalance = ethers.utils.formatEther(balance);
+          walletBalance.textContent = parseFloat(ethBalance).toFixed(6);
           
-        if (!walletExists) {
-          showStatus(`${walletNames[walletType]}未安装或未启用`, true);
-          throw new Error('钱包不存在');
+          // 更新网络信息
+          const network = await provider.getNetwork();
+          walletNetwork.textContent = formatNetwork(network.chainId.toString(16));
+          
+          // 计算总费用
+          calculateTotalCost();
+        } catch (error) {
+          console.error('更新余额失败:', error);
+          showStatus('更新余额失败: ' + error.message, 'error');
         }
+      };
+      
+      // 计算预计总费用
+      const calculateTotalCost = async function() {
+        if (!provider) return;
         
-        // 连接钱包
-        showStatus(`正在连接${walletNames[walletType]}...`);
-        const providerObj = walletType === 'metamask' ? window.ethereum : window.BinanceChain;
-        await providerObj.request({ method: 'eth_requestAccounts' });
+        try {
+          const amount = parseFloat(amountInput.value) || 0;
+          if (amount <= 0) return;
+          
+          // 获取当前gas价格
+          const gasPrice = await provider.getGasPrice();
+          
+          // 简单转账通常需要21000 gas
+          const gasLimit = 21000;
+          
+          // 计算gas费用(ETH)
+          const gasCostWei = gasPrice.mul(gasLimit);
+          const gasCostEth = parseFloat(ethers.utils.formatEther(gasCostWei));
+          
+          // 总费用 = 转账金额 + gas费用
+          const totalCost = amount + gasCostEth;
+          
+          // 显示总费用
+          totalCostElement.textContent = totalCost.toFixed(6) + ' ETH';
+          
+          return {
+            amount: amount,
+            gasCost: gasCostEth,
+            total: totalCost
+          };
+        } catch (error) {
+          console.error('计算费用失败:', error);
+          return null;
+        }
+      };
+      
+      // 检查余额是否充足
+      const checkBalanceSufficient = async function() {
+        if (!provider || !address) return false;
         
-        const provider = new window.ethers.providers.Web3Provider(providerObj);
-        const signer = provider.getSigner();
+        try {
+          const costInfo = await calculateTotalCost();
+          if (!costInfo) return false;
+          
+          const balance = parseFloat(ethers.utils.formatEther(await provider.getBalance(address)));
+          
+          // 检查余额是否大于总费用
+          return balance >= costInfo.total;
+        } catch (error) {
+          console.error('检查余额失败:', error);
+          return false;
+        }
+      };
+      
+      // 连接成功后的处理
+      const onWalletConnected = async function() {
+        // 隐藏二维码
+        qrcodeContainer.style.display = 'none';
         
-        // 发送交易
-        showStatus('准备交易...请在钱包中确认');
-        const tx = await signer.sendTransaction({
-          to: recipient,
-          value: window.ethers.utils.parseEther(amount)
-        });
+        // 获取地址
+        const accounts = await provider.listAccounts();
+        address = accounts[0];
         
-        showTransactionHash(tx.hash);
+        // 显示钱包信息
+        walletAddress.textContent = formatAddress(address);
+        walletInfo.classList.remove('hidden');
         
-      } catch (error) {
-        console.error('支付错误:', error);
-        showStatus(`操作失败: ${error.message || '未知错误'}`, true);
-      } finally {
-        payButton.disabled = false;
-        payButton.innerHTML = '<i class="fa fa-paper-plane mr-2"></i> 立即支付';
+        // 获取signer
+        signer = provider.getSigner();
+        
+        // 更新余额
+        await updateBalance();
+        
+        // 显示支付表单
+        paymentForm.classList.remove('hidden');
+        
+        // 显示成功信息
+        showStatus('钱包已连接，可以进行支付', 'success');
+      };
+      
+      // 连接MetaMask
+      connectMetamaskBtn.addEventListener('click', async function() {
+        hideStatus();
+        
+        try {
+          if (isMobile) {
+            // 手机端MetaMask需要通过deeplink
+            showStatus('正在打开MetaMask应用...', 'info');
+            
+            // 生成连接请求
+            const deepLink = `https://metamask.app.link/dapp/${window.location.href}`;
+            window.location.href = deepLink;
+            
+            // 给用户提示
+            setTimeout(() => {
+              showStatus('如果MetaMask未打开，请手动打开并连接', 'info');
+            }, 2000);
+          }
+          
+          // 检查是否有以太坊提供者
+          if (typeof window.ethereum === 'undefined') {
+            showStatus('未检测到钱包，请使用WalletConnect连接', 'error');
+            return;
+          }
+          
+          showStatus('正在连接MetaMask...请在钱包中授权', 'info');
+          
+          // 请求连接
+          await window.ethereum.request({ method: 'eth_requestAccounts' });
+          
+          // 初始化provider
+          provider = new ethers.providers.Web3Provider(window.ethereum);
+          
+          // 连接成功处理
+          await onWalletConnected();
+          
+          // 监听账户变化
+          window.ethereum.on('accountsChanged', async (accounts) => {
+            if (accounts.length > 0) {
+              address = accounts[0];
+              walletAddress.textContent = formatAddress(address);
+              await updateBalance();
+            } else {
+              resetWalletState();
+              showStatus('钱包已断开连接', 'info');
+            }
+          });
+          
+          // 监听网络变化
+          window.ethereum.on('chainChanged', async () => {
+            showStatus('网络已变更，正在更新信息...');
+            await updateBalance();
+            showStatus('网络信息已更新', 'success');
+          });
+          
+        } catch (error) {
+          console.error('连接失败:', error);
+          showStatus('连接失败: ' + error.message, 'error');
+        }
+      });
+      
+      // 连接WalletConnect
+      connectWalletConnectBtn.addEventListener('click', async function() {
+        hideStatus();
+        try {
+          // 创建WalletConnect提供者
+          walletConnectProvider = new WalletConnectProvider.default({
+            infuraId: "8043bb2cf99347b1bfadfb233c5325c0", // 公共infura ID，可替换为自己的
+            qrcode: false // 我们将自己处理二维码显示
+          });
+          
+          // 启动连接
+          await walletConnectProvider.enable();
+          
+          // 创建ethers提供者
+          provider = new ethers.providers.Web3Provider(walletConnectProvider);
+          
+          // 生成二维码
+          const qrcodeUrl = walletConnectProvider.wc.qrcodeUrl;
+          walletConnectQr.innerHTML = `<img src="${qrcodeUrl}" alt="WalletConnect二维码" style="width: 100%;">`;
+          qrcodeContainer.style.display = 'block';
+          
+          // 监听连接成功事件
+          walletConnectProvider.on("connect", async (error, payload) => {
+            if (error) {
+              throw error;
+            }
+            await onWalletConnected();
+          });
+          
+          // 监听断开连接事件
+          walletConnectProvider.on("disconnect", (error, payload) => {
+            if (error) {
+              console.error(error);
+            }
+            resetWalletState();
+            showStatus('钱包已断开连接', 'info');
+          });
+          
+        } catch (error) {
+          console.error('WalletConnect连接失败:', error);
+          showStatus('连接失败: ' + error.message, 'error');
+        }
+      });
+      
+      // 取消连接
+      cancelConnectBtn.addEventListener('click', function() {
+        if (walletConnectProvider) {
+          walletConnectProvider.disconnect();
+        }
+        qrcodeContainer.style.display = 'none';
+        hideStatus();
+      });
+      
+      // 重置钱包状态
+      function resetWalletState() {
+        address = null;
+        provider = null;
+        signer = null;
+        walletInfo.classList.add('hidden');
+        paymentForm.classList.add('hidden');
+        txHashArea.style.display = 'none';
       }
-    }
-    
-    // 页面加载完成后初始化
-    window.addEventListener('DOMContentLoaded', () => {
-      // 显示初始加载状态
-      showLibStatus('正在加载ethers.js库...');
       
-      // 检查ethers是否已加载
-      setTimeout(() => {
-        if (!checkEthers()) {
-          // 尝试加载备用CDN
-          loadBackupCDN();
-        } else {
-          showLibStatus('ethers.js加载成功', 'success');
-          payButton.disabled = false;
+      // 支付处理
+      payButton.addEventListener('click', async function() {
+        if (!provider || !signer || !address) {
+          showStatus('请先连接钱包', 'error');
+          return;
         }
-      }, 1000);
+        
+        hideStatus();
+        payButton.disabled = true;
+        payButton.innerHTML = '<i class="fa fa-spinner fa-spin"></i> 处理中...';
+        txHashArea.style.display = 'none';
+        
+        try {
+          const recipient = document.getElementById('recipient').value;
+          const amount = document.getElementById('amount').value;
+          
+          // 验证输入
+          if (!ethers.utils.isAddress(recipient)) {
+            showStatus('请输入有效的收款地址', 'error');
+            throw new Error('无效地址');
+          }
+          
+          if (isNaN(amount) || parseFloat(amount) <= 0) {
+            showStatus('请输入有效的金额', 'error');
+            throw new Error('无效金额');
+          }
+          
+          // 检查余额是否充足
+          const isSufficient = await checkBalanceSufficient();
+          if (!isSufficient) {
+            const costInfo = await calculateTotalCost();
+            const balance = parseFloat(walletBalance.textContent);
+            showStatus(
+              `余额不足! 所需: ${costInfo.total.toFixed(6)} ETH, 现有: ${balance.toFixed(6)} ETH`, 
+              'error'
+            );
+            throw new Error('余额不足');
+          }
+          
+          // 获取gas价格
+          const gasPrice = await provider.getGasPrice();
+          
+          // 显示交易确认信息
+          showStatus('请在钱包中确认交易...', 'info');
+          
+          // 发送交易
+          const tx = await signer.sendTransaction({
+            to: recipient,
+            value: ethers.utils.parseEther(amount),
+            gasPrice: gasPrice,
+            gasLimit: 21000 // 简单转账固定gas limit
+          });
+          
+          // 显示交易哈希
+          showTransactionHash(tx.hash);
+          showStatus('交易已发送，等待区块链确认...', 'info');
+          
+          // 等待交易确认
+          const receipt = await tx.wait();
+          
+          if (receipt.status === 1) {
+            showStatus('交易已成功确认!', 'success');
+            // 更新余额显示
+            await updateBalance();
+          } else {
+            showStatus('交易失败', 'error');
+          }
+          
+        } catch (error) {
+          console.error('支付错误:', error);
+          showStatus(`操作失败: ${error.message || '未知错误'}`, 'error');
+        } finally {
+          payButton.disabled = false;
+          payButton.innerHTML = '<i class="fa fa-paper-plane"></i> 确认支付';
+        }
+      });
       
-      // 事件监听
-      payButton.addEventListener('click', processPayment);
-      testCdnBtn.addEventListener('click', testCDNConnections);
+      // 金额变化时重新计算费用
+      amountInput.addEventListener('input', calculateTotalCost);
       
       // 复制哈希
-      copyBtn.addEventListener('click', () => {
-        navigator.clipboard.writeText(tx.hash).then(() => {
-          const original = copyBtn.innerHTML;
+      copyBtn.addEventListener('click', function() {
+        navigator.clipboard.writeText(txHash.textContent).then(function() {
+          const originalText = copyBtn.innerHTML;
           copyBtn.innerHTML = '<i class="fa fa-check text-green-400"></i>';
-          setTimeout(() => copyBtn.innerHTML = original, 2000);
+          setTimeout(function() {
+            copyBtn.innerHTML = originalText;
+          }, 2000);
+        }).catch(function() {
+          // 复制失败时的备用方案
+          const textarea = document.createElement('textarea');
+          textarea.value = txHash.textContent;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          
+          const originalText = copyBtn.innerHTML;
+          copyBtn.innerHTML = '<i class="fa fa-check text-green-400"></i>';
+          setTimeout(function() {
+            copyBtn.innerHTML = originalText;
+          }, 2000);
         });
       });
+      
+      // 页面加载时检查是否是移动设备并给出提示
+      if (isMobile) {
+        showStatus('检测到移动设备，建议使用WalletConnect连接钱包', 'info');
+      }
     });
   </script>
 </body>
