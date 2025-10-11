@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Connect MetaMask / Binance (WalletConnect) Demo</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js"></script>
+  <!-- WalletConnect v1 provider (for quick demo). For production consider WalletConnect v2 or web3modal v2. -->
+  <script src="https://unpkg.com/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
+  <style>
+    body{font-family:system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; padding:24px;}
+    .card{border:1px solid #eee;padding:16px;border-radius:8px;max-width:900px}
+    input,button{margin:6px 0;padding:8px;font-size:14px}
+    .mono{font-family:monospace;background:#f7f7f7;padding:8px;border-radius:6px}
+  </style>
+</head>
+<body>
+  <h1>MetaMask &amp; Binance (WalletConnect) Demo</h1>
+  <div class="card">
+    <h3>MetaMask (browser extension / mobile in-app)</h3>
+    <div>
+      <button id="mmConnect">连接 MetaMask</button>
+      <button id="mmSend">用 MetaMask 发送交易</button>
+    </div>
+    <div>账户: <span id="mmAddress" class="mono">未连接</span></div>
+    <div id="mmStatus"></div>
+  </div>
+
+  <div style="height:16px"></div>
+
+  <div class="card">
+    <h3>Binance Wallet / 其他移动钱包（通过 WalletConnect）</h3>
+    <p>此处使用 <code>WalletConnect</code> 进行移动钱包深度链接 / 二维码连接（适用于 Trust Wallet、Binance Wallet、Rainbow 等）。</p>
+    <div>
+      <button id="wcConnect">连接 WalletConnect</button>
+      <button id="wcSend">用 WalletConnect 发送交易</button>
+    </div>
+    <div>账户: <span id="wcAddress" class="mono">未连接</span></div>
+    <div id="wcStatus"></div>
+  </div>
+
+  <hr />
+  <h4>交易参数（示例）</h4>
+  <label>接收地址: <input id="to" placeholder="0x..." style="width:420px" value="0x0000000000000000000000000000000000000000" /></label>
+  <br>
+  <label>金额 (ETH/BSC 等): <input id="amount" value="0.001" style="width:120px" /></label>
+  <p style="color:#666">提示：如果想在 BSC（Binance Smart Chain）上发 BNB，请把 network / chainId 切换到 BSC，或使用 WalletConnect 时传入对应 RPC。</p>
+
+  <script>
+    // ---------- MetaMask ----------
+    const mmConnectBtn = document.getElementById('mmConnect')
+    const mmSendBtn = document.getElementById('mmSend')
+    const mmAddressSpan = document.getElementById('mmAddress')
+    const mmStatus = document.getElementById('mmStatus')
+
+    let mmProvider = null
+
+    mmConnectBtn.onclick = async () => {
+      try {
+        if (!window.ethereum) throw new Error('未检测到以太坊注入（MetaMask）。请安装或在手机钱包的内置浏览器中打开。')
+        // 请求账户权限
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
+        mmAddressSpan.textContent = accounts[0]
+        mmProvider = new ethers.BrowserProvider(window.ethereum)
+        mmStatus.textContent = '已连接，当前网络 chainId: ' + (await mmProvider.getNetwork()).chainId
+      } catch (e) {
+        mmStatus.textContent = '错误：' + e.message
+      }
+    }
+
+    mmSendBtn.onclick = async () => {
+      try {
+        if (!mmProvider) {
+          mmStatus.textContent = '请先连接 MetaMask。'
+          return
+        }
+        const signer = await mmProvider.getSigner()
+        const to = document.getElementById('to').value
+        const amount = document.getElementById('amount').value
+        // 发送交易（会弹出 MetaMask 确认）
+        const tx = await signer.sendTransaction({ to, value: ethers.parseEther(amount) })
+        mmStatus.innerHTML = `已创建交易：<div class="mono">${tx.hash}</div>（等区块确认）` 
+      } catch (e) {
+        mmStatus.textContent = '发送失败：' + (e.message || e)
+      }
+    }
+
+    // ---------- WalletConnect (Binance/移动钱包) ----------
+    const wcConnectBtn = document.getElementById('wcConnect')
+    const wcSendBtn = document.getElementById('wcSend')
+    const wcAddressSpan = document.getElementById('wcAddress')
+    const wcStatus = document.getElementById('wcStatus')
+
+    // IMPORTANT: replace INFURA_ID with your own if you want to connect to Ethereum mainnet via Infura.
+    // For Binance Smart Chain use an RPC URL for BSC in rpc: { 56: 'https://bsc-dataseed.binance.org/' }
+    const WALLETCONNECT_OPTIONS = {
+      rpc: { 1: 'https://mainnet.infura.io/v3/YOUR_INFURA_ID' },
+      bridge: 'https://bridge.walletconnect.org',
+      qrcode: true,
+    }
+
+    let wcProvider = null
+    let wcEthersProvider = null
+
+    wcConnectBtn.onclick = async () => {
+      try {
+        const WalletConnectProvider = window.WalletConnectProvider.default
+        wcProvider = new WalletConnectProvider(WALLETCONNECT_OPTIONS)
+        // 打开二维码 / 移动 deep link
+        await wcProvider.enable()
+        // 使用 ethers 包装 provider
+        wcEthersProvider = new ethers.BrowserProvider(wcProvider)
+        const accounts = await wcEthersProvider.listAccounts()
+        if (accounts.length) wcAddressSpan.textContent = accounts[0].address || accounts[0]
+        wcStatus.textContent = '已通过 WalletConnect 连接（可在手机钱包中确认或使用移动 deep link）'
+      } catch (e) {
+        wcStatus.textContent = '连接失败：' + (e.message || e)
+      }
+    }
+
+    wcSendBtn.onclick = async () => {
+      try {
+        if (!wcEthersProvider) { wcStatus.textContent = '请先通过 WalletConnect 连接。'; return }
+        const signer = await wcEthersProvider.getSigner()
+        const to = document.getElementById('to').value
+        const amount = document.getElementById('amount').value
+        const tx = await signer.sendTransaction({ to, value: ethers.parseEther(amount) })
+        wcStatus.innerHTML = `已创建交易：<div class="mono">${tx.hash}</div>`
+      } catch (e) {
+        wcStatus.textContent = '发送失败：' + (e.message || e)
+      }
+    }
+
+    // 清理：当页面卸载时断开 WalletConnect
+    window.addEventListener('beforeunload', async () => {
+      try { if (wcProvider && wcProvider.disconnect) await wcProvider.disconnect() } catch(e){}
+    })
+  </script>
+
+  <p style="color:#666">示例说明：1) 将 <code>YOUR_INFURA_ID</code> 或 <code>rpc</code> 替换为你的 RPC / Infura key；2) 在 Binance Smart Chain（BSC）上发送 BNB 时，请把 RPC 指向 BSC 节点并确保 chainId = 56；3) 测试时优先使用测试网与小额资金。</p>
+</body>
+</html>
