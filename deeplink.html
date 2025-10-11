@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MetaMask 交易</title>
+    <title>MetaMask USDT 支付</title>
     <style>
         * {
             margin: 0;
@@ -48,14 +48,32 @@
             gap: 10px;
         }
         
-        .metamask-logo {
+        .usdt-logo {
             width: 40px;
             height: 40px;
+            background: #26a17b;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
         }
         
         .subtitle {
             color: #7fdbda;
             font-size: 16px;
+        }
+        
+        .usdt-badge {
+            display: inline-block;
+            background: #26a17b;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 8px;
         }
         
         .card {
@@ -110,7 +128,7 @@
         }
         
         button {
-            background: linear-gradient(to right, #00b4db, #0083b0);
+            background: linear-gradient(to right, #26a17b, #1d8a6c);
             color: white;
             border: none;
             border-radius: 50px;
@@ -257,26 +275,11 @@
     <div class="container">
         <header>
             <h1>
-                <svg class="metamask-logo" viewBox="0 0 212 189" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M61.7188 175.571L3.9375 140.571L39.375 139.196L61.7188 175.571Z" fill="#E17726"/>
-                    <path d="M150.281 175.571L208.063 140.571L172.625 139.196L150.281 175.571Z" fill="#E27625"/>
-                    <path d="M138.375 68.696L150.281 10.446L106.031 1.446L73.625 68.821L106.031 86.321L138.375 68.696Z" fill="#E27625"/>
-                    <path d="M73.625 68.821L3.9375 68.696L61.7188 107.196L73.625 120.571L106.031 86.321L73.625 68.821Z" fill="#F5841F"/>
-                    <path d="M150.281 10.446L138.375 68.696L208.063 68.696L150.281 10.446Z" fill="#F5841F"/>
-                    <path d="M61.7188 107.196L3.9375 68.696L39.375 95.446L61.7188 107.196Z" fill="#E27625"/>
-                    <path d="M172.625 95.446L208.063 68.696L150.281 107.196L172.625 95.446Z" fill="#E27625"/>
-                    <path d="M73.625 120.571L61.7188 175.571L106.031 139.196L73.625 120.571Z" fill="#D5BFB2"/>
-                    <path d="M150.281 107.196L138.375 120.571L106.031 139.196L150.281 175.571L150.281 107.196Z" fill="#D5BFB2"/>
-                    <path d="M106.031 86.321L73.625 68.821L106.031 86.321Z" fill="#233447"/>
-                    <path d="M150.281 10.446L138.375 68.696L150.281 10.446Z" fill="#CC6228"/>
-                    <path d="M61.7188 107.196L73.625 120.571L61.7188 107.196Z" fill="#E27625"/>
-                    <path d="M150.281 107.196L138.375 120.571L150.281 107.196Z" fill="#E27625"/>
-                    <path d="M73.625 120.571L61.7188 175.571L73.625 120.571Z" fill="#F5841F"/>
-                    <path d="M138.375 120.571L150.281 175.571L138.375 120.571Z" fill="#F5841F"/>
-                </svg>
-                MetaMask 交易
+                <div class="usdt-logo">USDT</div>
+                USDT 支付
             </h1>
-            <p class="subtitle">从URL参数获取交易信息并发送</p>
+            <p class="subtitle">使用 MetaMask 发送 USDT 交易</p>
+            <div class="usdt-badge">仅支持 USDT</div>
         </header>
         
         <div class="wallet-info" id="walletInfo">
@@ -284,7 +287,7 @@
                 <div>已连接钱包</div>
                 <div class="wallet-address" id="walletAddress">0x...</div>
             </div>
-            <div class="wallet-balance" id="walletBalance">0 ETH</div>
+            <div class="wallet-balance" id="walletBalance">0 USDT</div>
         </div>
         
         <div class="card">
@@ -302,7 +305,11 @@
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">金额:</span>
-                    <span id="amountDisplay">0 ETH</span>
+                    <span id="amountDisplay">0 USDT</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">代币:</span>
+                    <span>USDT (Tether USD)</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">网络:</span>
@@ -331,7 +338,7 @@
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                发送交易
+                发送 USDT
             </button>
         </div>
 
@@ -342,7 +349,7 @@
                 </svg>
                 交易哈希
             </div>
-            <p>交易已发送！交易哈希如下：</p>
+            <p>USDT交易已发送！交易哈希如下：</p>
             <div class="hash-display" id="transactionHashDisplay"></div>
             <a href="#" target="_blank" id="explorerLink" class="explorer-link">在区块浏览器中查看交易</a>
             <div id="statusMessage" class="status-message"></div>
@@ -361,7 +368,7 @@
                 <span id="chainIdDisplay">未设置</span>
             </div>
             <div class="detail-row">
-                <span class="detail-label">金额:</span>
+                <span class="detail-label">USDT金额:</span>
                 <span id="amountParamDisplay">未设置</span>
             </div>
             <div class="detail-row">
@@ -371,8 +378,8 @@
         </div>
 
         <div class="footer">
-            <p>使用 MetaMask API 发送交易</p>
-            <p style="margin-top: 10px; font-size: 12px;">此页面从URL参数获取链ID、金额和发送地址</p>
+            <p>仅支持 USDT 代币支付</p>
+            <p style="margin-top: 10px; font-size: 12px;">此页面从URL参数获取链ID、USDT金额和发送地址</p>
         </div>
     </div>
 
@@ -398,6 +405,42 @@
             let currentAccount = null;
             let currentChainId = null;
             
+            // USDT合约地址映射（不同网络）
+            const USDT_CONTRACT_ADDRESSES = {
+                '1': '0xdAC17F958D2ee523a2206206994597C13D831ec7', // 以太坊主网
+                '5': '0x509Ee0d083DdF8AC028f2a56731412edD63223B9', // Goerli测试网
+                '11155111': '0xaA8E23Fb1079EA71e0a56F48a2aA51851D8433D0', // Sepolia测试网
+                '80001': '0x3813e82e6f7098b9583FC0F33a962D02018B6803' // Mumbai测试网
+            };
+            
+            // USDT ABI (简化的，只包含我们需要的方法)
+            const USDT_ABI = [
+                {
+                    "constant": false,
+                    "inputs": [
+                        {"name": "_to", "type": "address"},
+                        {"name": "_value", "type": "uint256"}
+                    ],
+                    "name": "transfer",
+                    "outputs": [{"name": "", "type": "bool"}],
+                    "type": "function"
+                },
+                {
+                    "constant": true,
+                    "inputs": [{"name": "_owner", "type": "address"}],
+                    "name": "balanceOf",
+                    "outputs": [{"name": "balance", "type": "uint256"}],
+                    "type": "function"
+                },
+                {
+                    "constant": true,
+                    "inputs": [],
+                    "name": "decimals",
+                    "outputs": [{"name": "", "type": "uint8"}],
+                    "type": "function"
+                }
+            ];
+            
             // 从URL获取参数
             function getUrlParams() {
                 const urlParams = new URLSearchParams(window.location.search);
@@ -407,7 +450,7 @@
                 
                 return {
                     chainId: chainId || '1', // 默认为以太坊主网
-                    amount: amount || '0.01', // 默认0.01 ETH
+                    amount: amount || '10', // 默认10 USDT
                     toAddress: toAddress || '0x9659c0a3A9aACCA57680093F151BE548675222E1' // 默认地址
                 };
             }
@@ -418,12 +461,12 @@
                 
                 // 显示URL参数信息
                 chainIdDisplay.textContent = params.chainId;
-                amountParamDisplay.textContent = params.amount + ' ETH';
+                amountParamDisplay.textContent = params.amount + ' USDT';
                 toAddressParamDisplay.textContent = params.toAddress;
                 
                 // 显示交易详情
                 toAddressDisplay.textContent = params.toAddress;
-                amountDisplay.textContent = params.amount + ' ETH';
+                amountDisplay.textContent = params.amount + ' USDT';
                 
                 // 根据链ID显示网络名称
                 const networkName = getNetworkName(params.chainId);
@@ -513,7 +556,7 @@
                 }
             });
             
-            // 发送交易
+            // 发送USDT交易
             sendTransactionBtn.addEventListener('click', async function() {
                 if (!currentAccount) {
                     statusMessage.textContent = '请先连接钱包';
@@ -524,7 +567,8 @@
                 try {
                     const params = getUrlParams();
                     const toAddress = params.toAddress;
-                    const amountInEth = parseFloat(params.amount);
+                    const amountInUSDT = parseFloat(params.amount);
+                    const currentChainIdNum = parseInt(currentChainId).toString();
                     
                     // 验证地址格式
                     if (!/^0x[a-fA-F0-9]{40}$/.test(toAddress)) {
@@ -534,24 +578,40 @@
                     }
                     
                     // 验证金额
-                    if (isNaN(amountInEth) || amountInEth <= 0) {
-                        statusMessage.textContent = '金额格式不正确';
+                    if (isNaN(amountInUSDT) || amountInUSDT <= 0) {
+                        statusMessage.textContent = 'USDT金额格式不正确';
                         statusMessage.className = 'status-message status-error';
                         return;
                     }
                     
-                    // 将ETH转换为wei (十六进制)
-                    const valueInWei = BigInt(Math.floor(amountInEth * 1e18));
-                    const valueHex = '0x' + valueInWei.toString(16);
+                    // 检查当前网络是否支持USDT
+                    const usdtContractAddress = USDT_CONTRACT_ADDRESSES[currentChainIdNum];
+                    if (!usdtContractAddress) {
+                        statusMessage.textContent = '当前网络不支持USDT支付';
+                        statusMessage.className = 'status-message status-error';
+                        return;
+                    }
+                    
+                    // 将USDT转换为最小单位 (6位小数)
+                    const amountInWei = BigInt(Math.floor(amountInUSDT * 1e6));
+                    const amountHex = '0x' + amountInWei.toString(16);
+                    
+                    // 创建USDT合约实例
+                    const web3 = new window.ethereum;
+                    const usdtContract = new web3.eth.Contract(USDT_ABI, usdtContractAddress);
+                    
+                    // 获取transfer函数的数据
+                    const transferData = usdtContract.methods.transfer(toAddress, amountHex).encodeABI();
                     
                     // 发送交易
                     const txHash = await window.ethereum.request({
                         method: 'eth_sendTransaction',
                         params: [{
                             from: currentAccount,
-                            to: toAddress,
-                            value: valueHex,
-                            gas: '0x5208', // 21000 gas
+                            to: usdtContractAddress,
+                            value: '0x0', // 不发送ETH
+                            data: transferData,
+                            gas: '0x7a120', // 500000 gas，USDT转账需要更多gas
                         }]
                     });
                     
@@ -562,15 +622,15 @@
                     // 生成区块浏览器链接
                     updateExplorerLink(txHash, currentChainId);
                     
-                    statusMessage.textContent = '交易已发送！等待确认...';
+                    statusMessage.textContent = 'USDT交易已发送！等待确认...';
                     statusMessage.className = 'status-message status-info';
                     
                     // 监听交易确认
                     listenForTransactionConfirmation(txHash);
                     
                 } catch (error) {
-                    console.error('发送交易失败:', error);
-                    statusMessage.textContent = '发送交易失败: ' + error.message;
+                    console.error('发送USDT交易失败:', error);
+                    statusMessage.textContent = '发送USDT交易失败: ' + error.message;
                     statusMessage.className = 'status-message status-error';
                 }
             });
@@ -581,24 +641,35 @@
                     walletAddress.textContent = currentAccount;
                     walletInfo.style.display = 'flex';
                     
-                    // 获取余额
-                    getBalance(currentAccount);
+                    // 获取USDT余额
+                    getUSDTBalance(currentAccount);
                 }
             }
             
-            // 获取余额
-            async function getBalance(account) {
+            // 获取USDT余额
+            async function getUSDTBalance(account) {
                 try {
-                    const balance = await window.ethereum.request({
-                        method: 'eth_getBalance',
-                        params: [account, 'latest']
-                    });
+                    const currentChainIdNum = parseInt(currentChainId).toString();
+                    const usdtContractAddress = USDT_CONTRACT_ADDRESSES[currentChainIdNum];
                     
-                    // 将余额从wei转换为ETH
-                    const balanceInEth = parseInt(balance, 16) / 1e18;
-                    walletBalance.textContent = balanceInEth.toFixed(4) + ' ETH';
+                    if (!usdtContractAddress) {
+                        walletBalance.textContent = '网络不支持';
+                        return;
+                    }
+                    
+                    // 创建USDT合约实例
+                    const web3 = new window.ethereum;
+                    const usdtContract = new web3.eth.Contract(USDT_ABI, usdtContractAddress);
+                    
+                    // 获取余额
+                    const balance = await usdtContract.methods.balanceOf(account).call();
+                    
+                    // 将余额从最小单位转换为USDT (6位小数)
+                    const balanceInUSDT = parseInt(balance) / 1e6;
+                    walletBalance.textContent = balanceInUSDT.toFixed(2) + ' USDT';
                 } catch (error) {
-                    console.error('获取余额失败:', error);
+                    console.error('获取USDT余额失败:', error);
+                    walletBalance.textContent = '获取失败';
                 }
             }
             
@@ -631,7 +702,7 @@
                 // 这里我们简单模拟确认过程
                 
                 setTimeout(() => {
-                    statusMessage.textContent = '交易已确认！点击上方链接在区块浏览器中查看详情。';
+                    statusMessage.textContent = 'USDT交易已确认！点击上方链接在区块浏览器中查看详情。';
                     statusMessage.className = 'status-message status-success';
                 }, 5000);
             }
