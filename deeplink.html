@@ -215,6 +215,27 @@
             font-size: 11px;
         }
         
+        .manual-instructions {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            font-size: 14px;
+        }
+        
+        .manual-instructions h3 {
+            color: #7fdbda;
+            margin-bottom: 10px;
+        }
+        
+        .manual-steps {
+            margin-left: 15px;
+        }
+        
+        .manual-steps li {
+            margin-bottom: 8px;
+        }
+        
         @media (max-width: 500px) {
             .container {
                 padding: 20px;
@@ -304,12 +325,12 @@
         </div>
         
         <div class="buttons">
-            <a href="#" id="sendTransactionBtn" class="link-button">
+            <button id="sendTransactionBtn">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
                 在 MetaMask 中发送交易
-            </a>
+            </button>
             <button class="secondary" id="copyAddressBtn">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M16 4H18C18.5304 4 19.0391 4.21071 19.4142 4.58579C19.7893 4.96086 20 5.46957 20 6V20C20 20.5304 19.7893 21.0391 19.4142 21.4142C19.0391 21.7893 18.5304 21.7893 18 22H6C5.46957 22 4.96086 21.7893 4.58579 21.4142C4.21071 21.0391 4 20.5304 4 20V6C4 5.46957 4.21071 4.96086 4.58579 4.58579C4.96086 4.21071 5.46957 4 6 4H8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -324,7 +345,7 @@
                 <svg class="card-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 16V12M12 8H12.01M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z" stroke="#7fdbda" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                深度链接选项（如果上方按钮无效）
+                备选链接选项
             </div>
             <div class="link-options">
                 <div class="link-option" id="linkOption1">
@@ -332,19 +353,32 @@
                     https://metamask.app.link/send/0x9659c0a3A9aACCA57680093F151BE548675222E1@5?value=0x2386F26FC10000
                 </div>
                 <div class="link-option" id="linkOption2">
-                    <div class="link-option-title">选项 2 (十六进制值)</div>
-                    https://metamask.app.link/send/0x9659c0a3A9aACCA57680093F151BE548675222E1?value=0x2386F26FC10000
+                    <div class="link-option-title">选项 2 (EIP-681格式)</div>
+                    ethereum:0x9659c0a3A9aACCA57680093F151BE548675222E1@5/transfer?address=0x9659c0a3A9aACCA57680093F151BE548675222E1&uint256=10000000000000000
                 </div>
                 <div class="link-option" id="linkOption3">
-                    <div class="link-option-title">选项 3 (十进制值)</div>
+                    <div class="link-option-title">选项 3 (简单格式)</div>
                     https://metamask.app.link/send/0x9659c0a3A9aACCA57680093F151BE548675222E1?value=10000000000000000
                 </div>
             </div>
         </div>
         
+        <div class="manual-instructions">
+            <h3>如果深度链接无效，请尝试以下方法：</h3>
+            <ol class="manual-steps">
+                <li>确保您已在移动设备上安装了最新版本的MetaMask应用</li>
+                <li>点击"复制收款地址"按钮</li>
+                <li>手动打开MetaMask应用</li>
+                <li>点击"发送"按钮</li>
+                <li>粘贴收款地址并设置金额为0.01 ETH</li>
+                <li>确保选择正确的测试网络（Goerli/Sepolia/Mumbai）</li>
+                <li>确认并发送交易</li>
+            </ol>
+        </div>
+        
         <div class="footer">
-            <p>点击按钮将打开 MetaMask 应用并预填充交易信息</p>
-            <p style="margin-top: 10px; font-size: 12px;">如果深度链接无效，请尝试使用上方的替代链接选项</p>
+            <p>点击按钮将尝试打开 MetaMask 应用并预填充交易信息</p>
+            <p style="margin-top: 10px; font-size: 12px;">如果深度链接无效，请尝试使用备选链接或手动操作</p>
         </div>
     </div>
 
@@ -392,27 +426,51 @@
                 });
             });
             
+            // 发送交易功能
+            sendTransactionBtn.addEventListener('click', function() {
+                const chainId = document.querySelector('.network-option.active').getAttribute('data-chainid');
+                const address = '0x9659c0a3A9aACCA57680093F151BE548675222E1';
+                const valueHex = '0x2386F26FC10000'; // 0.01 ETH in wei (hex)
+                
+                // 尝试使用标准MetaMask深度链接
+                const metamaskLink = `https://metamask.app.link/send/${address}@${chainId}?value=${valueHex}`;
+                
+                // 打开MetaMask链接
+                window.location.href = metamaskLink;
+                
+                // 如果链接没有正确拉起交易，显示提示
+                setTimeout(() => {
+                    if (!document.hidden) {
+                        alert('如果MetaMask没有正确打开，请尝试使用备选链接或手动操作。');
+                    }
+                }, 2000);
+            });
+            
             // 根据选择的网络更新MetaMask链接
             function updateMetaMaskLink(chainId) {
-                // 0.01 ETH 的十六进制值 (10000000000000000 wei)
-                const valueHex = '0x2386F26FC10000';
-                const valueDecimal = '10000000000000000';
+                const valueHex = '0x2386F26FC10000'; // 0.01 ETH in wei (hex)
+                const valueDecimal = '10000000000000000'; // 0.01 ETH in wei (decimal)
                 const address = '0x9659c0a3A9aACCA57680093F151BE548675222E1';
-                
-                // 更新主按钮链接
-                sendTransactionBtn.href = `https://metamask.app.link/send/${address}@${chainId}?value=${valueHex}`;
                 
                 // 更新备选链接选项
                 linkOption1.innerHTML = `<div class="link-option-title">选项 1 (标准格式)</div>https://metamask.app.link/send/${address}@${chainId}?value=${valueHex}`;
-                linkOption2.innerHTML = `<div class="link-option-title">选项 2 (十六进制值)</div>https://metamask.app.link/send/${address}?value=${valueHex}`;
-                linkOption3.innerHTML = `<div class="link-option-title">选项 3 (十进制值)</div>https://metamask.app.link/send/${address}?value=${valueDecimal}`;
+                linkOption2.innerHTML = `<div class="link-option-title">选项 2 (EIP-681格式)</div>ethereum:${address}@${chainId}/transfer?address=${address}&uint256=${valueDecimal}`;
+                linkOption3.innerHTML = `<div class="link-option-title">选项 3 (简单格式)</div>https://metamask.app.link/send/${address}?value=${valueDecimal}`;
             }
             
             // 为备选链接添加点击事件
             [linkOption1, linkOption2, linkOption3].forEach((option, index) => {
                 option.addEventListener('click', function() {
-                    const link = this.innerText.split('\n')[1].trim();
-                    window.location.href = link;
+                    const linkText = this.innerText.split('\n')[1].trim();
+                    
+                    // 处理EIP-681格式的链接
+                    if (linkText.startsWith('ethereum:')) {
+                        // 对于ethereum:协议链接，我们需要特殊处理
+                        window.location.href = linkText;
+                    } else {
+                        // 对于https链接，直接跳转
+                        window.location.href = linkText;
+                    }
                 });
             });
             
