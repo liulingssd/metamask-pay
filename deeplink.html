@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MetaMask 测试网交易</title>
+    <title>MetaMask 测试网交易 - 交易哈希跟踪</title>
     <style>
         * {
             margin: 0;
@@ -25,7 +25,7 @@
         
         .container {
             width: 100%;
-            max-width: 500px;
+            max-width: 600px;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border-radius: 20px;
@@ -236,6 +236,64 @@
             margin-bottom: 8px;
         }
         
+        .transaction-hash-section {
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .hash-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 12px 15px;
+            color: white;
+            font-family: monospace;
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .hash-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .explorer-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: #7fdbda;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .explorer-link:hover {
+            text-decoration: underline;
+        }
+        
+        .status-message {
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .status-success {
+            background: rgba(46, 204, 113, 0.2);
+            border: 1px solid rgba(46, 204, 113, 0.5);
+            display: block;
+        }
+        
+        .status-error {
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid rgba(231, 76, 60, 0.5);
+            display: block;
+        }
+        
+        .status-info {
+            background: rgba(52, 152, 219, 0.2);
+            border: 1px solid rgba(52, 152, 219, 0.5);
+            display: block;
+        }
+        
         @media (max-width: 500px) {
             .container {
                 padding: 20px;
@@ -278,7 +336,7 @@
                 </svg>
                 MetaMask 测试网交易
             </h1>
-            <p class="subtitle">发送 0.01 ETH 到指定地址</p>
+            <p class="subtitle">发送 0.01 ETH 到指定地址并跟踪交易哈希</p>
             <div class="testnet-badge">测试网模式</div>
         </header>
         
@@ -340,45 +398,48 @@
             </button>
         </div>
 
+        <div class="transaction-hash-section" id="transactionHashSection">
+            <div class="card-title">
+                <svg class="card-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 12L11 14L22 3M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16" stroke="#7fdbda" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                交易哈希跟踪
+            </div>
+            <p>请在MetaMask中发送交易后，复制交易哈希并粘贴到这里：</p>
+            <input type="text" class="hash-input" id="transactionHashInput" placeholder="输入交易哈希 (0x...)">
+            <button class="secondary" id="trackTransactionBtn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                跟踪交易状态
+            </button>
+            <a href="#" target="_blank" id="explorerLink" class="explorer-link" style="display: none;">在区块浏览器中查看交易</a>
+            <div id="statusMessage" class="status-message"></div>
+        </div>
+
         <div class="card">
             <div class="card-title">
                 <svg class="card-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 16V12M12 8H12.01M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z" stroke="#7fdbda" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                备选链接选项
+                如何获取交易哈希
             </div>
-            <div class="link-options">
-                <div class="link-option" id="linkOption1">
-                    <div class="link-option-title">选项 1 (标准格式)</div>
-                    https://metamask.app.link/send/0x9659c0a3A9aACCA57680093F151BE548675222E1@5?value=0x2386F26FC10000
-                </div>
-                <div class="link-option" id="linkOption2">
-                    <div class="link-option-title">选项 2 (EIP-681格式)</div>
-                    ethereum:0x9659c0a3A9aACCA57680093F151BE548675222E1@5/transfer?address=0x9659c0a3A9aACCA57680093F151BE548675222E1&uint256=10000000000000000
-                </div>
-                <div class="link-option" id="linkOption3">
-                    <div class="link-option-title">选项 3 (简单格式)</div>
-                    https://metamask.app.link/send/0x9659c0a3A9aACCA57680093F151BE548675222E1?value=10000000000000000
-                </div>
+            <div class="manual-instructions">
+                <ol class="manual-steps">
+                    <li>在MetaMask中发送交易后，返回交易历史页面</li>
+                    <li>找到您刚刚发送的交易</li>
+                    <li>点击交易查看详情</li>
+                    <li>复制交易哈希（以0x开头的长字符串）</li>
+                    <li>将交易哈希粘贴到上方的输入框中</li>
+                    <li>点击"跟踪交易状态"按钮查看交易详情</li>
+                </ol>
             </div>
-        </div>
-        
-        <div class="manual-instructions">
-            <h3>如果深度链接无效，请尝试以下方法：</h3>
-            <ol class="manual-steps">
-                <li>确保您已在移动设备上安装了最新版本的MetaMask应用</li>
-                <li>点击"复制收款地址"按钮</li>
-                <li>手动打开MetaMask应用</li>
-                <li>点击"发送"按钮</li>
-                <li>粘贴收款地址并设置金额为0.01 ETH</li>
-                <li>确保选择正确的测试网络（Goerli/Sepolia/Mumbai）</li>
-                <li>确认并发送交易</li>
-            </ol>
         </div>
         
         <div class="footer">
-            <p>点击按钮将尝试打开 MetaMask 应用并预填充交易信息</p>
-            <p style="margin-top: 10px; font-size: 12px;">如果深度链接无效，请尝试使用备选链接或手动操作</p>
+            <p>交易哈希是跟踪区块链交易状态的唯一标识符</p>
+            <p style="margin-top: 10px; font-size: 12px;">通过交易哈希，您可以在区块浏览器中查看交易确认状态和详情</p>
         </div>
     </div>
 
@@ -388,9 +449,11 @@
             const selectedNetwork = document.getElementById('selectedNetwork');
             const sendTransactionBtn = document.getElementById('sendTransactionBtn');
             const copyAddressBtn = document.getElementById('copyAddressBtn');
-            const linkOption1 = document.getElementById('linkOption1');
-            const linkOption2 = document.getElementById('linkOption2');
-            const linkOption3 = document.getElementById('linkOption3');
+            const transactionHashSection = document.getElementById('transactionHashSection');
+            const transactionHashInput = document.getElementById('transactionHashInput');
+            const trackTransactionBtn = document.getElementById('trackTransactionBtn');
+            const explorerLink = document.getElementById('explorerLink');
+            const statusMessage = document.getElementById('statusMessage');
             
             // 网络选择功能
             networkOptions.forEach(option => {
@@ -401,9 +464,6 @@
                     this.classList.add('active');
                     // 更新显示的选中网络
                     selectedNetwork.textContent = this.getAttribute('data-network') + ' 测试网';
-                    
-                    // 根据选择的网络更新MetaMask链接
-                    updateMetaMaskLink(this.getAttribute('data-chainid'));
                 });
             });
             
@@ -435,47 +495,92 @@
                 // 尝试使用标准MetaMask深度链接
                 const metamaskLink = `https://metamask.app.link/send/${address}@${chainId}?value=${valueHex}`;
                 
+                // 显示交易哈希跟踪部分
+                transactionHashSection.style.display = 'block';
+                
+                // 滚动到交易哈希部分
+                transactionHashSection.scrollIntoView({ behavior: 'smooth' });
+                
+                // 显示提示信息
+                statusMessage.textContent = '请在MetaMask中完成交易后，返回此页面并输入交易哈希以跟踪状态。';
+                statusMessage.className = 'status-message status-info';
+                
                 // 打开MetaMask链接
                 window.location.href = metamaskLink;
+            });
+            
+            // 跟踪交易功能
+            trackTransactionBtn.addEventListener('click', function() {
+                const txHash = transactionHashInput.value.trim();
+                const chainId = document.querySelector('.network-option.active').getAttribute('data-chainid');
                 
-                // 如果链接没有正确拉起交易，显示提示
+                if (!txHash) {
+                    statusMessage.textContent = '请输入有效的交易哈希';
+                    statusMessage.className = 'status-message status-error';
+                    return;
+                }
+                
+                if (!txHash.startsWith('0x') || txHash.length !== 66) {
+                    statusMessage.textContent = '交易哈希格式不正确，应以0x开头且长度为66字符';
+                    statusMessage.className = 'status-message status-error';
+                    return;
+                }
+                
+                // 根据网络生成区块浏览器链接
+                let explorerUrl;
+                switch(chainId) {
+                    case '5': // Goerli
+                        explorerUrl = `https://goerli.etherscan.io/tx/${txHash}`;
+                        break;
+                    case '11155111': // Sepolia
+                        explorerUrl = `https://sepolia.etherscan.io/tx/${txHash}`;
+                        break;
+                    case '80001': // Mumbai
+                        explorerUrl = `https://mumbai.polygonscan.com/tx/${txHash}`;
+                        break;
+                    default:
+                        explorerUrl = `https://etherscan.io/tx/${txHash}`;
+                }
+                
+                // 更新浏览器链接
+                explorerLink.href = explorerUrl;
+                explorerLink.style.display = 'inline-block';
+                
+                // 显示成功消息
+                statusMessage.textContent = '交易哈希有效！点击上方链接在区块浏览器中查看交易详情。';
+                statusMessage.className = 'status-message status-success';
+                
+                // 模拟API调用检查交易状态（实际应用中应调用真实API）
+                simulateTransactionCheck(txHash, chainId);
+            });
+            
+            // 模拟交易状态检查
+            function simulateTransactionCheck(txHash, chainId) {
+                // 在实际应用中，这里应该调用区块链API检查交易状态
+                // 例如使用Etherscan API或Alchemy API
+                
                 setTimeout(() => {
-                    if (!document.hidden) {
-                        alert('如果MetaMask没有正确打开，请尝试使用备选链接或手动操作。');
+                    // 模拟API响应
+                    const isConfirmed = Math.random() > 0.3; // 70%确认率
+                    
+                    if (isConfirmed) {
+                        statusMessage.textContent = `交易已确认！点击上方链接在区块浏览器中查看详情。`;
+                        statusMessage.className = 'status-message status-success';
+                    } else {
+                        statusMessage.textContent = `交易仍在处理中，请稍后刷新查看状态。`;
+                        statusMessage.className = 'status-message status-info';
                     }
                 }, 2000);
-            });
-            
-            // 根据选择的网络更新MetaMask链接
-            function updateMetaMaskLink(chainId) {
-                const valueHex = '0x2386F26FC10000'; // 0.01 ETH in wei (hex)
-                const valueDecimal = '10000000000000000'; // 0.01 ETH in wei (decimal)
-                const address = '0x9659c0a3A9aACCA57680093F151BE548675222E1';
-                
-                // 更新备选链接选项
-                linkOption1.innerHTML = `<div class="link-option-title">选项 1 (标准格式)</div>https://metamask.app.link/send/${address}@${chainId}?value=${valueHex}`;
-                linkOption2.innerHTML = `<div class="link-option-title">选项 2 (EIP-681格式)</div>ethereum:${address}@${chainId}/transfer?address=${address}&uint256=${valueDecimal}`;
-                linkOption3.innerHTML = `<div class="link-option-title">选项 3 (简单格式)</div>https://metamask.app.link/send/${address}?value=${valueDecimal}`;
             }
             
-            // 为备选链接添加点击事件
-            [linkOption1, linkOption2, linkOption3].forEach((option, index) => {
-                option.addEventListener('click', function() {
-                    const linkText = this.innerText.split('\n')[1].trim();
-                    
-                    // 处理EIP-681格式的链接
-                    if (linkText.startsWith('ethereum:')) {
-                        // 对于ethereum:协议链接，我们需要特殊处理
-                        window.location.href = linkText;
-                    } else {
-                        // 对于https链接，直接跳转
-                        window.location.href = linkText;
-                    }
-                });
+            // 交易哈希输入框粘贴事件
+            transactionHashInput.addEventListener('paste', function(e) {
+                // 允许粘贴，不做特殊处理
+                setTimeout(() => {
+                    // 粘贴后自动选中所有文本
+                    this.select();
+                }, 10);
             });
-            
-            // 初始化链接
-            updateMetaMaskLink('5'); // 默认Goerli网络
         });
     </script>
 </body>
