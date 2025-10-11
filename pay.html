@@ -1,90 +1,239 @@
-<!DOCTYPE html>
-<html lang="zh">
+<!doctype html>
+<html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <title>MetaMask 支付</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="https://cdn.jsdelivr.net/npm/ethers@6.11.1/dist/ethers.umd.min.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MetaMask / Binance 支付 Demo</title>
+  <meta name="description" content="支持从 URL 参数选择链 (eth/bsc)，移动端自动唤起钱包，桌面端显示 WalletConnect 二维码。不会自动发起交易，用户需手动确认。">
+  <!-- ethers.js v6 UMD -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js"></script>
+  <!-- WalletConnect v1 provider (用于显示二维码 / 在桌面上连接手机钱包)。生产建议迁移到 WalletConnect v2 / web3modal。 -->
+  <script src="https://unpkg.com/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
   <style>
-    body {
-      font-family: sans-serif;
-      padding: 20px;
-      text-align: center;
-    }
-    button {
-      background: #f6851b;
-      border: none;
-      color: white;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    #log { margin-top: 20px; color: #333; word-break: break-all; }
+    :root{--bg:#fff;--text:#111;--muted:#666;--card:#f8f8f8}
+    @media(prefers-color-scheme:dark){:root{--bg:#070707;--text:#eee;--muted:#bbb;--card:#0f0f0f}}
+    body{font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial;padding:18px;background:var(--bg);color:var(--text)}
+    .card{background:var(--card);padding:14px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.06);max-width:820px;margin-bottom:14px}
+    button{padding:8px 12px;border-radius:8px;border:1px solid #ddd;background:transparent;cursor:pointer}
+    input{padding:8px;border-radius:6px;border:1px solid #ccc}
+    .mono{font-family:monospace;background:rgba(0,0,0,0.03);padding:6px;border-radius:6px}
+    .cols{display:flex;gap:12px;flex-wrap:wrap}
+    .col{flex:1;min-width:240px}
+    .hint{color:var(--muted);font-size:13px}
   </style>
 </head>
 <body>
-  <h2>MetaMask 支付</h2>
-  <p id="info">准备唤起 MetaMask...</p>
-  <button id="payBtn" style="display:none;">发起支付</button>
-  <div id="log"></div>
+  <h1>MetaMask / Binance 支付 Demo</h1>
+  <p class="hint">说明：通过 URL 参数控制网络与交易：<code>?chain=bsc</code> 或 <code>?chain=eth</code>，并可附带 <code>to</code> 与 <code>amount</code>。</p>
+
+  <div class="card">
+    <h3>当前配置</h3>
+    <div class="cols">
+      <div class="col">链：<span id="chainName" class="mono">-</span></div>
+      <div class="col">接收地址：<span id="toAddr" class="mono">-</span></div>
+      <div class="col">金额：<span id="amountVal" class="mono">-</span></div>
+    </div>
+    <div class="hint">（页面不会自动发送交易；自动仅尝试唤起钱包并连接，用户最后必须在钱包中确认并签名）</div>
+  </div>
+
+  <div class="card">
+    <h3>快速操作</h3>
+    <div class="cols">
+      <div class="col">
+        <button id="btnMetaMask">用 MetaMask 连接</button>
+        <div class="hint">尝试使用 injected provider（内置 MetaMask 或内置浏览器）或尝试 deep link 唤起 MetaMask app。</div>
+      </div>
+      <div class="col">
+        <button id="btnBinance">用 Binance/Trust/其他钱包 (WalletConnect) 连接</button>
+        <div class="hint">桌面端会弹出二维码供手机扫码；手机上会尝试用 deep link 打开钱包。</div>
+      </div>
+    </div>
+    <div style="height:10px"></div>
+    <div>已连接账号： <span id="acct" class="mono">未连接</span></div>
+    <div id="status" class="hint"></div>
+  </div>
+
+  <div class="card">
+    <h3>发送（用户在钱包中确认）</h3>
+    <div class="cols">
+      <div class="col">接收地址 <input id="inputTo" style="width:100%" /></div>
+      <div class="col">金额 <input id="inputAmount" style="width:100%" /></div>
+    </div>
+    <div style="height:8px"></div>
+    <button id="sendBtn">支付（在钱包中确认）</button>
+    <div id="txResult" class="hint"></div>
+  </div>
 
   <script>
-    const urlParams = new URLSearchParams(window.location.search)
-    const to = urlParams.get('to')
-    const amount = urlParams.get('amount') || '0.001'
-    const callback = urlParams.get('callback')
-
-    const log = msg => document.getElementById('log').innerText += msg + '\n'
-
-    async function pay() {
-      try {
-        if (!window.ethereum) {
-          document.getElementById('info').innerText = 'MetaMask 未注入，请在 MetaMask 内打开此页面'
-          return
-        }
-        await window.ethereum.request({ method: 'eth_requestAccounts' })
-        const provider = new ethers.BrowserProvider(window.ethereum)
-        const signer = await provider.getSigner()
-        const tx = await signer.sendTransaction({
-          to: to,
-          value: ethers.parseEther(amount)
-        })
-        log('交易已发送，等待确认...')
-        log('Tx Hash: ' + tx.hash)
-
-        if (callback) {
-          setTimeout(() => {
-            window.location.href = callback + '?txHash=' + tx.hash
-          }, 1500)
-        }
-      } catch (e) {
-        log('错误: ' + e.message)
+    (function(){
+      // --- 简单工具 ---
+      const qs = (k, d) => new URLSearchParams(location.search).get(k) || d
+      const chainParam = (qs('chain') || 'eth').toLowerCase()
+      const DEFAULTS = {
+        eth: { name: 'Ethereum', chainId: 1, symbol: 'ETH', rpc: 'https://mainnet.infura.io/v3/YOUR_INFURA_ID' },
+        bsc: { name: 'BSC', chainId: 56, symbol: 'BNB', rpc: 'https://bsc-dataseed.binance.org/' }
       }
-    }
+      const net = DEFAULTS[chainParam] || DEFAULTS['eth']
 
-    // 检测是否在 MetaMask 内打开
-    if (!window.ethereum && !window.location.href.startsWith('metamask://')) {
-      const deeplink = `metamask://dapp/liulingssd.github.io/metamask-pay/pay.html?${urlParams.toString()}`
-      document.getElementById('info').innerText = '正在跳转到 MetaMask...'
-      setTimeout(() => window.location.href = deeplink, 800)
-    } else {
-      document.getElementById('payBtn').style.display = 'inline-block'
-      document.getElementById('payBtn').addEventListener('click', pay)
-      document.getElementById('info').innerText = `准备支付 ${amount} ETH 到 ${to}`
-    }
+      // 填充 UI
+      document.getElementById('chainName').textContent = net.name + ' (chainId=' + net.chainId + ')'
+      const toParam = qs('to', '')
+      const amountParam = qs('amount', '')
+      document.getElementById('toAddr').textContent = toParam || '-'
+      document.getElementById('amountVal').textContent = amountParam || '-'
+      document.getElementById('inputTo').value = toParam
+      document.getElementById('inputAmount').value = amountParam || '0.001'
+
+      const acctSpan = document.getElementById('acct')
+      const status = document.getElementById('status')
+      const txResult = document.getElementById('txResult')
+
+      // ethers provider wrappers
+      let injectedProvider = null
+      let wcProvider = null
+      let ethersProvider = null
+
+      // Helper: update status
+      function setStatus(s){ status.textContent = s }
+
+      // Detect mobile
+      const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)
+
+      // Deep link attempts (will try to open app)
+      function tryDeepLink(url){
+        // open via location.href; wrap in timeout to let fallback happen
+        setStatus('尝试用 deep link 打开钱包...')
+        const start = Date.now()
+        window.location.href = url
+        // note: on modern mobile browsers this may open app; no reliable detection if failed
+        setTimeout(()=>{
+          const delta = Date.now() - start
+          // if delta small, user likely returned -> we don't do explicit fallback here
+        }, 1200)
+      }
+
+      // Metamask deep link formats
+      function openMetaMaskDeepLink(){
+        // prefer universal link (metamask://) - MetaMask mobile supports metamask://
+        const to = document.getElementById('inputTo').value
+        const amount = document.getElementById('inputAmount').value
+        // We won't auto-fill tx in deep link (complex); instead just open app so user can open DApp browser or connect
+        tryDeepLink('metamask://')
+      }
+
+      function openBinanceDeepLink(){
+        // Many wallets support wc deep link via WalletConnect or their own schemes. We'll try binance:// and trust:// as common examples.
+        tryDeepLink('binance://')
+        setTimeout(()=>{ tryDeepLink('trust://') }, 800)
+      }
+
+      // --- MetaMask connect ---
+      document.getElementById('btnMetaMask').addEventListener('click', async ()=>{
+        try{
+          if(window.ethereum){
+            setStatus('检测到 injected provider，尝试请求账户...')
+            injectedProvider = window.ethereum
+            // 请求权限
+            const accounts = await injectedProvider.request({ method: 'eth_requestAccounts' })
+            const addr = accounts[0]
+            acctSpan.textContent = addr
+            ethersProvider = new ethers.BrowserProvider(injectedProvider)
+            setStatus('已连接（injected）')
+          } else {
+            // 没有 injected provider（非内置钱包），如果是移动端尝试 deep link，否则提示并建议用 WalletConnect
+            if(isMobile){
+              setStatus('未检测到 injected provider，尝试唤起 MetaMask app...')
+              openMetaMaskDeepLink()
+            } else {
+              setStatus('未检测到 MetaMask，桌面端请安装浏览器扩展或使用 WalletConnect。')
+            }
+          }
+        }catch(e){ setStatus('连接 MetaMask 出错：' + (e.message||e)) }
+      })
+
+      // --- WalletConnect connect (用于 Binance/Trust 等) ---
+      document.getElementById('btnBinance').addEventListener('click', async ()=>{
+        try{
+          // 若为移动端，优先用 deep link 去打开常见钱包
+          if(isMobile){
+            setStatus('移动端：尝试唤起钱包（binance/trust/wallet）...')
+            openBinanceDeepLink()
+            // 仍然提供 WalletConnect fallback after a timeout so user can scan if deep link fails
+            setTimeout(()=>{ initWalletConnect() }, 1500)
+          } else {
+            // 桌面端直接打开 WalletConnect 二维码
+            initWalletConnect()
+          }
+        }catch(e){ setStatus('WalletConnect 连接错误：' + (e.message||e)) }
+      })
+
+      async function initWalletConnect(){
+        try{
+          setStatus('初始化 WalletConnect（将显示二维码或触发已安装钱包）...')
+          const WalletConnectProvider = window.WalletConnectProvider.default
+          wcProvider = new WalletConnectProvider({
+            rpc: { [net.chainId]: net.rpc },
+            bridge: 'https://bridge.walletconnect.org',
+            qrcode: true
+          })
+          await wcProvider.enable()
+          ethersProvider = new ethers.BrowserProvider(wcProvider)
+          const accounts = await ethersProvider.listAccounts()
+          const a = accounts[0]
+          acctSpan.textContent = a.address || a
+          setStatus('已通过 WalletConnect 连接')
+        }catch(e){ setStatus('WalletConnect 初始化失败：' + (e.message||e)) }
+      }
+
+      // --- 发送交易（用户在钱包里确认） ---
+      document.getElementById('sendBtn').addEventListener('click', async ()=>{
+        try{
+          txResult.textContent = ''
+          if(!ethersProvider){ setStatus('请先连接钱包（MetaMask 或 WalletConnect）'); return }
+          setStatus('准备发送交易，请在钱包中确认...')
+          const signer = await ethersProvider.getSigner()
+          const to = document.getElementById('inputTo').value
+          const amount = document.getElementById('inputAmount').value
+          if(!to){ setStatus('请填写接收地址'); return }
+          const value = ethers.parseEther(amount || '0')
+          const tx = await signer.sendTransaction({ to, value })
+          txResult.textContent = '交易已创建，hash: ' + tx.hash
+          setStatus('交易发送成功（等待链上确认）')
+        }catch(e){ setStatus('发送失败：' + (e.message||e)) }
+      })
+
+      // --- 安全提示 / 页面卸载清理 ---
+      window.addEventListener('beforeunload', async ()=>{
+        try{ if(wcProvider && wcProvider.disconnect) await wcProvider.disconnect() }catch(e){}
+      })
+
+      // 自动尝试在移动端打开钱包（only open app — 不自动发送交易）
+      (function autoOpenOnMobile(){
+        const auto = true
+        if(!isMobile || !auto) return
+        // 等待 600ms 让页面渲染
+        setTimeout(()=>{
+          setStatus('移动端：自动尝试唤起钱包（不会自动发送交易）')
+          // 优先尝试内置 injected (if opened in wallet in-app browser it's already injected)
+          if(window.ethereum){ setStatus('检测到内置钱包注入，请点击“连接”按钮以授权'); return }
+          // 否则轮流尝试唤起常见钱包 app
+          openMetaMaskDeepLink()
+          setTimeout(()=>{ openBinanceDeepLink() }, 900)
+        }, 600)
+      })()
+
+    })()
   </script>
+
+  <p class="hint">部署说明：
+    <ol>
+      <li>将此文件命名为 <code>pay.html</code> 并放到你的 GitHub 仓库 <code>gh-pages</code> 或 <code>docs/</code>（或直接 push 到 <code>main</code> 并开启 GitHub Pages）使其通过 HTTPS 可访问。</li>
+      <li>记得替换 <code>YOUR_INFURA_ID</code> 为你自己的 Infura 项目 ID（当使用 Ethereum 主网时）。BSC 默认使用公共 RPC。</li>
+      <li>测试 URL 示例：<br>
+        <code>https://liulingssd.github.io/metamask-pay/pay.html?chain=bsc&to=0x...&amount=0.01</code>
+      </li>
+      <li>行为说明：页面会在移动端尝试唤起钱包 app（不会自动发起交易）。用户需要在钱包中完成连接与最终签名。</li>
+    </ol>
+  </p>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
