@@ -70,7 +70,7 @@
       const qs = (k, d) => new URLSearchParams(location.search).get(k) || d
       const chainParam = (qs('chain') || 'eth').toLowerCase()
       const DEFAULTS = {
-        eth: { name: 'Ethereum', chainId: 1, symbol: 'ETH', rpc: 'https://mainnet.infura.io/v3/YOUR_INFURA_ID' },
+        eth: { name: 'Ethereum', chainId: 1, symbol: 'ETH', rpc: 'https://mainnet.infura.io/v3/1bdcffb34b08842fbe35f8ee1c30ff44' },
         bsc: { name: 'BSC', chainId: 56, symbol: 'BNB', rpc: 'https://bsc-dataseed.binance.org/' }
       }
       const net = DEFAULTS[chainParam] || DEFAULTS['eth']
