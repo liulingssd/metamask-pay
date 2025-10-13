@@ -415,54 +415,54 @@
             
             // 估算Gas费用
             // 估算Gas费用（真实计算逻辑）
-async function estimateGas() {
-    if (!checkMetaMask() || !urlParams.chainId) {
-        gas.textContent = '无法估算 - 请连接钱包';
-        return;
-    }
-
-    try {
-        // 1. 初始化Web3实例
-        const web3 = new Web3(window.ethereum);
-        
-        // 2. 获取当前网络的Gas价格（单位：wei）
-        // 注意：EIP-1559后有maxFeePerGas和maxPriorityFeePerGas，这里简化为legacy模式的gasPrice
-        const gasPriceWei = await web3.eth.getGasPrice();
-        const gasPriceEth = web3.utils.fromWei(gasPriceWei, 'ether'); // 转换为ETH
-        
-        // 3. 获取USDT合约地址（根据链ID）
-        const usdtContractAddress = USDT_CONTRACT_ADDRESSES[urlParams.chainId];
-        if (!usdtContractAddress) {
-            gas.textContent = '不支持的网络';
-            return;
-        }
-        
-        // 4. 创建USDT合约实例
-        const usdtContract = new web3.eth.Contract(USDT_ABI, usdtContractAddress);
-        
-        // 5. 估算转账所需的Gas限制（针对USDT转账的具体操作）
-        // 注意：需要传入转账的from、to、value参数（即使未连接钱包，也可估算基础值）
-        const amountInUSDT = parseFloat(urlParams.amount);
-        const amountInWei = BigInt(Math.floor(amountInUSDT * 1e6)); // USDT是6位小数
-        
-        // 估算Gas限制（如果已连接钱包，用当前账户；否则用0地址占位估算）
-        const fromAddress = currentAccount || '0x0000000000000000000000000000000000000000';
-        const gasLimit = await usdtContract.methods
-            .transfer(urlParams.toAddress, amountInWei)
-            .estimateGas({ from: fromAddress });
-        
-        // 6. 计算总Gas费用（ETH）
-        const totalGasEth = (gasPriceEth * gasLimit).toFixed(6);
-        
-        // 7. 显示结果（包含单位转换说明）
-        gas.textContent = `~${totalGasEth} ETH (Gas Limit: ${gasLimit}, Gas Price: ${web3.utils.fromWei(gasPriceWei, 'gwei')} Gwei)`;
-        
-    } catch (error) {
-        console.error('Gas估算失败:', error);
-        // 常见错误处理：如果估算失败，使用默认值
-        gas.textContent = '~0.002 ETH (默认值)';
-    }
-}
+            function estimateGas() {
+                if (!checkMetaMask() || !urlParams.chainId) {
+                    gas.textContent = '无法估算 - 请连接钱包';
+                    return;
+                }
+            
+                try {
+                    // 1. 初始化Web3实例
+                    const web3 = new Web3(window.ethereum);
+                    
+                    // 2. 获取当前网络的Gas价格（单位：wei）
+                    // 注意：EIP-1559后有maxFeePerGas和maxPriorityFeePerGas，这里简化为legacy模式的gasPrice
+                    const gasPriceWei = await web3.eth.getGasPrice();
+                    const gasPriceEth = web3.utils.fromWei(gasPriceWei, 'ether'); // 转换为ETH
+                    
+                    // 3. 获取USDT合约地址（根据链ID）
+                    const usdtContractAddress = USDT_CONTRACT_ADDRESSES[urlParams.chainId];
+                    if (!usdtContractAddress) {
+                        gas.textContent = '不支持的网络';
+                        return;
+                    }
+                    
+                    // 4. 创建USDT合约实例
+                    const usdtContract = new web3.eth.Contract(USDT_ABI, usdtContractAddress);
+                    
+                    // 5. 估算转账所需的Gas限制（针对USDT转账的具体操作）
+                    // 注意：需要传入转账的from、to、value参数（即使未连接钱包，也可估算基础值）
+                    const amountInUSDT = parseFloat(urlParams.amount);
+                    const amountInWei = BigInt(Math.floor(amountInUSDT * 1e6)); // USDT是6位小数
+                    
+                    // 估算Gas限制（如果已连接钱包，用当前账户；否则用0地址占位估算）
+                    const fromAddress = currentAccount || '0x0000000000000000000000000000000000000000';
+                    const gasLimit = await usdtContract.methods
+                        .transfer(urlParams.toAddress, amountInWei)
+                        .estimateGas({ from: fromAddress });
+                    
+                    // 6. 计算总Gas费用（ETH）
+                    const totalGasEth = (gasPriceEth * gasLimit).toFixed(6);
+                    
+                    // 7. 显示结果（包含单位转换说明）
+                    gas.textContent = `~${totalGasEth} ETH (Gas Limit: ${gasLimit}, Gas Price: ${web3.utils.fromWei(gasPriceWei, 'gwei')} Gwei)`;
+                    
+                } catch (error) {
+                    console.error('Gas估算失败:', error);
+                    // 常见错误处理：如果估算失败，使用默认值
+                    gas.textContent = '~0.002 ETH (默认值)';
+                }
+            }
             
             // 检查是否已安装 MetaMask
             function checkMetaMask() {
