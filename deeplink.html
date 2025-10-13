@@ -708,6 +708,7 @@
                 const checkInterval = setInterval(async () => {
                     try {
                         const txReceipt = await web3.eth.getTransactionReceipt(txHash);
+                        alert(JSON.stringify(txReceipt))
                         if (txReceipt) {
                             clearInterval(checkInterval);
                             if (txReceipt.status === '0x1') {
