@@ -1,976 +1,656 @@
-<template>
-	<view class="result-container">
-		<nav-bar :title="titleNav" height :show-back="true" title-color="#000"
-			backgroundColor="#fff">
-			<template #right>
-				<view class="tui-header-right" @click="handleServer" :style="{ marginTop: statusHeight + 'px' }">
-					<image src="/static/supplyHall/service.png" mode="widthFix"></image>
-				</view>
-			</template>
-		</nav-bar>
-		<view class="icon-result">
-			<image src="/static/icons/icon-result.png" mode=""></image>
-		</view>
-
-		<!-- 充值详情 -->
-		<block v-if="pageType == 1">
-			<view class="pay-source">
-				<text>{{ $t('deposit.title') }}</text>
-			</view>
-			<view class="pay-amount">{{formatMoney(walletDetail.rechargeAmount)}}</view>
-			<view class="pay-source">
-				<text style="color: #FF0000" v-if="walletDetail.status == 2">{{ $t('transactionHistory.depositfailed') }}</text>
-				<text style="color: #1CA959" v-if="walletDetail.status == 1">{{ $t('transactionHistory.depositsuccessful') }}</text>
-				<text style="color: #999999" v-if="walletDetail.status == 0">{{ $t('transactionHistory.processing') }}</text>
-			</view>
-			<view class="pay-info">
-				<view class="pay-info__item">
-					<view class="label">{{ $t('depositDetail.depositamount') }}</view>
-					<view class="">${{ walletDetail.rechargeAmount}}</view>
-				</view>
-				<view class="pay-info__item" v-if="walletDetail.auditRechargeAmount && walletDetail.auditRechargeAmount!=walletDetail.rechargeAmount">
-					<view class="label">{{ $t('depositDetail.netDepositAmount') }}</view>
-					<view class="">${{walletDetail.auditRechargeAmount}}</view>
-				</view>
-				<view class="pay-info__item">
-					<view class="label">{{ $t('depositDetail.deposittime') }}</view>
-					<view class="">{{walletDetail.gmtCreate}}</view>
-				</view>
-				<view class="pay-info__item" style="border-top:2rpx solid #E5E5E5;margin-top:23rpx;" v-if="walletDetail.status != 2||moreShow">
-					<view class="label">{{ $t('depositDetail.network') }}</view>
-					<view class="fc"><image
-						:src="walletDetail.blockChainNetwork==1?'/static/order/pay-eth.png':'/static/order/pay-bth.png'"
-						mode="scaleToFill"
-					/>{{walletDetail.blockChainNetwork==1?$t('deposit.networkEth'):$t('deposit.networkBNB')}}</view>
-				</view>
-				<view class="pay-info__item" v-if="walletDetail.status != 2||moreShow">
-					<view class="label">{{ $t('depositDetail.paymentmethod') }}</view>
-					<view class="fc">
-						<block v-if="walletDetail.paymentMethod == 1"><image
-							src="/static/order/pay-mask.png"
-							mode="scaleToFill"
-						/>{{ $t('deposit.paymentEth') }}</block>
-						<block v-if="walletDetail.paymentMethod == 2"><image
-							src="/static/order/pay-bnb.png"
-							mode="scaleToFill"
-						/>{{ $t('deposit.paymentBNB') }}</block>
-						<block v-if="walletDetail.paymentMethod == 3"><image
-							src="/static/order/pay-manual.png"
-							mode="scaleToFill"
-						/>{{ $t('deposit.paymentManual') }}</block>
-					</view>
-				</view>
-				<view class="pay-info__item" style="border-top:2rpx solid #E5E5E5;margin-top:23rpx;" v-if="walletDetail.status != 2||moreShow">
-					<view class="label">{{ $t('depositDetail.transactionhash') }}</view>
-					<view class="fc" style="flex:1;justify-content: flex-end;word-break: break-all;">{{ walletDetail.txHash || '-' }}<view class="upload-tip" @click="uploadBtn" v-if="!walletDetail.txHash&&walletDetail.status == 0">Upload</view></view>
-				</view>
-				<view class="pay-info__item" v-if="walletDetail.status != 2||moreShow">
-					<view class="label">{{ $t('depositDetail.arrivaltime') }}</view>
-					<view class="">{{walletDetail.payTime||'-'}}</view>
-				</view>
-				<view v-if="!moreShow&&walletDetail.status == 2" @click="moreShow=!moreShow" style="color:#949494;font-size:31rpx;display:flex;margin-top:20rpx;">{{$t('common.more')}} <uni-icons
-					type="bottom"
-					color="#949494"
-					size="20"
-				/></view>
-				<view v-if="moreShow&&walletDetail.status == 2" @click="moreShow=!moreShow" style="color:#949494;font-size:31rpx;display:flex;margin-top:20rpx;">{{$t('common.collapse')}} <uni-icons
-					type="top"
-					color="#949494"
-					size="20"
-				/></view>
-				<!-- <view class="pay-info__item">
-				<view class="label">充值编号</view>
-				<view class="">{{walletDetail.relatedOrderNo || walletDetail.orderNo}}</view>
-			</view> -->
-			
-			</view>
-			<view class="pay-info" style="margin-top: 30rpx;min-height:auto;" v-if="walletDetail.status == 2">
-				<view class="label" style="color: #717789;">{{ $t('depositDetail.depositFailedReason') }}</view>
-				<view class="pay-info__item" style="color: #FF8208;">{{ lang=='en'? walletDetail.rejectReasonEn:walletDetail.rejectReasonCn }}</view>
-			</view>
-			<view class="submit-btn" v-if="walletDetail.orderStatus == 0&&walletDetail.transactionStatus == 0">
-				<tui-form-button borderColor="#0070E7" borderWidth="2rpx" plain radius="42rpx" color="#0070E7" height="84rpx" @click="handleCancle">{{$t('common.cancel')}}</tui-form-button>
-			</view>
-		</block>
-
-		<!-- 提现详情 -->
-		<block v-if="pageType == 2">
-			<view class="pay-source">
-				<text>{{$t('withdrawal.title')}}</text>
-				<!-- <text v-if="walletDetail.withdrawMethod == 1">支付宝</text>
-				<text v-if="walletDetail.withdrawMethod == 2">微信</text>
-				<text v-if="walletDetail.withdrawMethod == 3">银行卡</text> -->
-			</view>
-			<view class="pay-amount">{{formatMoney(walletDetail.amount)}}</view>
-			<view class="pay-source">
-				<text style="color: #FF0000" v-if="walletDetail.payStatus == 2">{{$t('withdrawal.withdrawFailed')}}</text>
-				<text style="color: #1CA959" v-if="walletDetail.payStatus == 1">{{$t('withdrawal.withdrawSuccess')}}</text>
-				<text style="color: #999999" v-if="walletDetail.payStatus == 0">{{$t('transactionHistory.processing')}}</text>
-				
-			</view>
-			<view class="fail-tip" style="height: 40rpx;">
-				<text
-					v-if="walletDetail.payStatus == 0 && walletDetail.auditStatus == 1 && walletDetail.withdrawMethod == 2">你的本次提现审核已通过，请申请确认打款</text>
-			</view>
-			<view class="pay-info" style="margin-top: 30rpx;">
-				<view class="pay-info__item">
-					<view class="label">{{ $t('withdrawal.withdrawAmount') }}</view>
-					<view class="">${{formatMoney(walletDetail.amount)}}</view>
-				</view>
-				<view class="pay-info__item" style="margin-bottom: 8rpx;" v-if="walletDetail.withdrawCommissionRate&&moreShow">
-					<view class="label">
-						<view class="">{{ $t('withdrawal.withdrawalfee') }}</view>
-						<view class="withdraw-rate">({{walletDetail.withdrawCommissionRate}}%)</view>
-					</view>
-					<view class="">${{formatMoney(walletDetail.withdrawCommission)}}</view>
-				</view>
-				<view class="pay-info__item" v-if="moreShow"> 
-					<view class="label">{{ $t('withdrawal.netWithdrawalAmount') }}</view>
-					<view class="">${{formatMoney(walletDetail.actualWithdrawAmount)}}</view>
-				</view>
-				<view class="pay-info__item">
-					<view class="label">{{ $t('withdrawal.withdrawalRequestTime') }}</view>
-					<view class="">{{walletDetail.gmtCreate}}</view>
-				</view>
-				<view class="pay-info__item" v-if="moreShow" style="border-top:2rpx solid #E5E5E5;margin-top:23rpx;">
-					<view class="label">{{ $t('depositDetail.network') }}</view>
-					<view class="fc"><image
-						:src="walletDetail.blockChainNetwork==1?'/static/order/pay-eth.png':'/static/order/pay-bth.png'"
-						mode="scaleToFill"
-					/>{{walletDetail.blockChainNetwork==1?$t('deposit.networkEth'):$t('deposit.networkBNB')}}</view>
-				</view>
-				<view class="pay-info__item" v-if="moreShow">
-					<view class="label">{{ $t('withdrawal.address') }}</view>
-					<view class="" style="word-break: break-all;">{{walletDetail.toHash}}</view>
-				</view>
-				<view v-if="!moreShow" @click="moreShow=!moreShow" style="color:#949494;font-size:31rpx;display:flex;margin-top:20rpx;">{{$t('common.more')}} <uni-icons
-					type="bottom"
-					color="#949494"
-					size="20"
-				/></view>
-				<view v-if="moreShow" @click="moreShow=!moreShow" style="color:#949494;font-size:31rpx;display:flex;margin-top:20rpx;">{{$t('common.collapse')}} <uni-icons
-					type="top"
-					color="#949494"
-					size="20"
-				/></view>
-				<!-- <view class="pay-info__item" v-if="walletDetail.auditTime">
-					<view class="label">审核时间</view>
-					<view class="">{{walletDetail.auditTime}}</view>
-				</view> -->
-				<!-- <view class="pay-info__item"
-					v-if="walletDetail.description && walletDetail.payStatus == 2 || walletDetail.description && walletDetail.auditStatus == 2">
-					<view class="label">{{walletDetail.auditStatus == 2 ? '拒绝' : '失败'}}原因</view>
-					<view style="color: #FF8208; flex: 1;">{{walletDetail.description}}</view>
-				</view>
-				<view class="pay-info__item" v-if="walletDetail.payTime">
-					<view class="label">打款时间</view>
-					<view class="">{{walletDetail.payTime}}</view>
-				</view> -->
-				<!-- <view class="pay-info__item">
-					<view class="label">提现到</view>
-					<view style="flex: 1;">
-						<text v-if="walletDetail.withdrawMethod == 1">支付宝</text>
-						<text v-if="walletDetail.withdrawMethod == 2">微信</text>
-						<text v-if="walletDetail.withdrawMethod == 3">银行卡</text>
-						<text>（{{formatNumber(walletDetail.account)}}）</text>
-						<text>{{formatName(walletDetail.realName)}}</text>
-					</view>
-				</view> -->
-				<!-- 	<view class="pay-info__item">
-				<view class="label">提现编号</view>
-				<view class="">{{walletDetail.orderNo}}</view>
-			</view> -->
-				
-			</view>
-			<view class="pay-info" style="margin-top: 30rpx;min-height:auto;">
-					<view class="label" style="color: #717789;">{{ $t('withdrawal.transactionProgress') }}</view>
-
-				<view class="pay-info__item">
-					<view class="progress-wrap">
-						<view class="progress-wrap__item">
-							<view class="label">{{$t('withdrawal.withdrawalRequestTime')}}</view>
-							<view class="">{{walletDetail.gmtCreate}}</view>
-						</view>
-						<!-- <view class="progress-wrap__item" v-if="walletDetail.auditStatus == 1">
-							<view class="label">审核时间</view>
-							<view class="">{{walletDetail.auditTime}}</view>
-						</view> -->
-						<!-- <view class="progress-wrap__item result-item"
-							v-if="walletDetail.auditStatus == 1 && walletDetail.payStatus == 0">
-							<view class="label">{{walletDetail.withdrawMethod == 2 ? '申请打款' : '待打款'}}</view>
-						</view> -->
-						<view class="progress-wrap__item result-item" v-if="walletDetail.auditStatus == 2">
-							<view class="label">{{$t('withdrawal.rejected')}}</view>
-							<view class="">{{walletDetail.auditTime}}</view>
-						</view>
-						<view class="progress-wrap__item result-item"
-							v-if="walletDetail.auditStatus == 1 && walletDetail.payStatus == 1">
-							<view class="label">{{$t('withdrawal.withdrawalProcessed')}}</view>
-							<view class="">{{walletDetail.payTime}}</view>
-						</view>
-						<view class="progress-wrap__item result-item"
-							v-if="walletDetail.auditStatus == 1 && walletDetail.payStatus == 2">
-							<view class="label" style="padding-top: 14rpx;">打款失败</view>
-						</view>
-						<view class="pay-info__item rejected" v-if="walletDetail.payStatus == 2||walletDetail.txHash">
-							<view class="label" style="color: #717789;">{{walletDetail.payStatus == 2 ? $t('withdrawal.rejectionReason') : $t('withdrawal.transactionHash')}}</view>
-							<view style="margin-top:12rpx;color: #1B1815;">{{walletDetail.payStatus == 2 ?(lang=='en'?walletDetail.descriptionEn:walletDetail.description):walletDetail.txHash}}</view>
-						</view>
-						<view class="line-blk">
-							<view class="circle"></view>
-							<view class="line" :style="{height: walletDetail.payStatus == 2 ? '78rpx' : '100rpx'}"></view>
-							<block v-if="walletDetail.payStatus == 1">
-								<view class="circle"></view>
-								<view class="line"></view>
-							</block>
-							<block v-if="walletDetail.auditStatus > 0">
-								<image
-									v-if="walletDetail.payStatus == 0  && walletDetail.withdrawMethod == 1"
-									src="/static/icons/icon-wait.png"></image>
-								<view class="circle"
-									v-if="walletDetail.payStatus == 0  && walletDetail.withdrawMethod == 2">
-								</view>
-								<view class="circle" style="background:#FF0000" v-if=" walletDetail.payStatus == 2"></view>
-								<image v-if="walletDetail.payStatus == 1" src="/static/icons/success.png"></image>
-							</block>
-						</view>
-					</view>
-				</view>
-			</view>
-			<view class="submit-btn"
-				v-if="walletDetail.payStatus == 0 && walletDetail.auditStatus == 1 && walletDetail.withdrawMethod == 2">
-				<tui-form-button background="#007BFF" height="84rpx" @click="handleSubmit">申请打款</tui-form-button>
-			</view>
-		</block>
-
-		<!-- 其他详情 -->
-		<block v-if="pageType > 2">
-			<view class="pay-source">{{walletDetail.businessScene}}</view>
-			<view class="pay-amount">{{formatMoney(walletDetail.amount)}}</view>
-
-			<block v-if="walletDetail.transactionCategory == 0">
-				<block v-if="walletDetail.businessScene == '撤单-原材料'">
-					<view class="pay-source">
-						<text class="fail-tip">退款成功（原路返回）</text>
-					</view>
-					<view class="pay-info">
-						<view class="pay-info__item related-item" v-if="walletDetail.relatedOrderNo">
-							<view class="label">关联订单</view>
-							<view class="fc" @click="handleToOrder">
-								<view class="order-no">{{walletDetail.relatedOrderNo}}</view>
-								<text>查看订单</text>
-							</view>
-						</view>
-						<view class="pay-info__item">
-							<view class="label">退款金额</view>
-							<view class="">{{formatMoney(walletDetail.amount)}}元</view>
-						</view>
-						<view class="pay-info__item">
-							<view class="label">退款时间</view>
-							<view class="">{{walletDetail.refundTime || '--'}}</view>
-						</view>
-						<view class="pay-info__item">
-							<view class="label">退款原因</view>
-							<view class="" style="color: #FF8208;">原材料订单撤销</view>
-						</view>
-						<view class="pay-info__item">
-							<view class="label">退款方式</view>
-							<view class="">
-								<text>{{walletDetail.paymentTypeStr || '--'}}</text>
-								<text v-if="walletDetail.paymentType == 1 && walletDetail.payAccount">
-									{{formatNumber(walletDetail.payAccount)}}
-								</text>
-							</view>
-						</view>
-					</view>
-				</block>
-				<block v-if="walletDetail.businessScene == '租赁生产定金'">
-					<view class="pay-source">交易成功</view>
-					<view class="pay-info">
-						<view class="pay-info__item related-item" v-if="walletDetail.relatedOrderNo">
-							<view class="label">关联订单</view>
-							<view class="fc" @click="handleToOrder">
-								<view class="order-no">{{walletDetail.relatedOrderNo}}</view>
-								<text>查看订单</text>
-							</view>
-						</view>
-						<view class="pay-info__item">
-							<view class="label">交易金额</view>
-							<view class="">{{formatMoney(walletDetail.amount)}}元</view>
-						</view>
-						<view class="pay-info__item">
-							<view class="label">交易时间</view>
-							<view class="">{{walletDetail.paymentTime || '--'}}</view>
-						</view>
-					</view>
-				</block>
-
-				<block
-					v-if="walletDetail.businessScene == '邀请奖励' || walletDetail.businessScene == '分佣' || walletDetail.businessScene == '首单奖励' || walletDetail.businessScene == '团队生产奖励'">
-					<view class="pay-source">交易成功</view>
-					<view class="pay-info">
-						<view class="pay-info__item">
-							<view class="label">交易金额</view>
-							<view class="">{{formatMoney(walletDetail.amount)}}元</view>
-						</view>
-						<view class="pay-info__item">
-							<view class="label">交易时间</view>
-							<view class="">{{walletDetail.paymentTime || '--'}}</view>
-						</view>
-					</view>
-				</block>
-			</block>
-
-			<block v-if="walletDetail.transactionCategory == 2">
-				<!-- 撤单 -->
-				<view class="pay-source">
-					<text class="fail-tip" v-if="walletDetail.refundStatus == 50">
-						退款中
-					</text>
-					<text class="fail-tip" v-if="walletDetail.refundStatus == 60">
-						退款失败
-					</text>
-					<text class="fail-tip" v-if="walletDetail.refundStatus == 70">
-						退款成功（原路返回）
-					</text>
-				</view>
-				<view class="pay-info">
-					<view class="pay-info__item related-item" v-if="walletDetail.relatedOrderNo">
-						<view class="label">关联订单</view>
-						<view class="fc" @click="handleToOrder">
-							<view class="order-no">{{walletDetail.relatedOrderNo}}</view>
-							<text>查看订单</text>
-						</view>
-					</view>
-					<view class="pay-info__item">
-						<view class="label">退款金额</view>
-						<view class="">{{formatMoney(walletDetail.amount)}}元</view>
-					</view>
-					<view class="pay-info__item">
-						<view class="label">退款时间</view>
-						<view class="">{{walletDetail.refundTime || '--'}}</view>
-					</view>
-				</view>
-				<view class="pay-info__item" v-if="walletDetail.remark">
-					<view class="label">退款原因</view>
-					<view class="" style="color: #FF8208;">{{walletDetail.remark || '--'}}</view>
-				</view>
-				<view class="pay-info__item">
-					<view class="label">退款方式</view>
-					<view class="">
-						<text>{{walletDetail.paymentTypeStr || '--'}}</text>
-						<text v-if="walletDetail.paymentType == 1 && walletDetail.payAccount">
-							{{formatNumber(walletDetail.payAccount)}}
-						</text>
-					</view>
-				</view>
-			</block>
-
-			<block v-if="walletDetail.transactionCategory == 3">
-				<!-- 结算收益 -->
-				<view class="pay-source">交易成功</view>
-				<view class="pay-info">
-					<view class="pay-info__item related-item" v-if="walletDetail.relatedOrderNo">
-						<view class="label">关联订单</view>
-						<view class="fc" @click="handleToOrder">
-							<view class="order-no">{{walletDetail.relatedOrderNo}}</view>
-							<text>查看订单</text>
-						</view>
-					</view>
-					<view class="pay-info__item">
-						<view class="label">交易金额</view>
-						<view class="">{{formatMoney(walletDetail.amount)}}元</view>
-					</view>
-					<view class="pay-info__item">
-						<view class="label">交易时间</view>
-						<view class="">{{walletDetail.paymentTime || '--'}}</view>
-					</view>
-				</view>
-				<!-- 租赁生产押金 -->
-				<view class="pay-info__item" v-if="walletDetail.remark">
-					<view class="label">退款原因</view>
-					<view class="" style="color: #FF8208;">{{walletDetail.remark || '--'}}</view>
-				</view>
-			</block>
-
-			<block v-if="walletDetail.transactionCategory == 4">
-				<!-- 分红 -->
-				<view class="pay-source">交易成功</view>
-				<view class="pay-info">
-					<view class="pay-info__item">
-						<view class="label">交易金额</view>
-						<view class="">{{formatMoney(walletDetail.amount)}}元</view>
-					</view>
-					<view class="pay-info__item">
-						<view class="label">交易时间</view>
-						<view class="">{{walletDetail.paymentTime || '--'}}</view>
-					</view>
-				</view>
-			</block>
-
-			<block v-if="walletDetail.transactionCategory == 101">
-				<block v-if="walletDetail.businessScene == '原材料订单' || walletDetail.businessScene == '租赁生产订单'">
-					<view class="pay-source">支付成功</view>
-					<view class="pay-info">
-						<view class="pay-info__item related-item" v-if="walletDetail.relatedOrderNo">
-							<view class="label">关联订单</view>
-							<view class="fc" @click="handleToOrder">
-								<view class="order-no">{{walletDetail.relatedOrderNo}}</view>
-								<text>查看订单</text>
-							</view>
-						</view>
-						<view class="pay-info__item">
-							<view class="label">支付金额</view>
-							<view class="">{{formatMoney(walletDetail.amount)}}元</view>
-						</view>
-						<view class="pay-info__item">
-							<view class="label">支付时间</view>
-							<view class="">{{walletDetail.paymentTime || '--'}}</view>
-						</view>
-						<view class="pay-info__item">
-							<view class="label">支付方式</view>
-							<view class="">
-								<text>{{walletDetail.paymentTypeStr || '--'}}</text>
-								<text v-if="walletDetail.paymentType == 1 && walletDetail.payAccount">
-									{{formatNumber(walletDetail.payAccount)}}
-								</text>
-							</view>
-						</view>
-					</view>
-				</block>
-				<block
-					v-if="walletDetail.businessScene == '租赁生产定金扣除' || walletDetail.businessScene == '租赁生产押金' || walletDetail.businessScene == '撤单-违约金扣除'">
-					<view class="pay-source">扣除成功</view>
-					<view class="pay-info">
-						<view class="pay-info__item related-item" v-if="walletDetail.relatedOrderNo">
-							<view class="label">关联订单</view>
-							<view class="fc" @click="handleToOrder">
-								<view class="order-no">{{walletDetail.relatedOrderNo}}</view>
-								<text>查看订单</text>
-							</view>
-						</view>
-						<view class="pay-info__item">
-							<view class="label">交易金额</view>
-							<view class="">{{formatMoney(walletDetail.amount)}}元</view>
-						</view>
-						<view class="pay-info__item">
-							<view class="label">交易时间</view>
-							<view class="">{{walletDetail.paymentTime || '--'}}</view>
-						</view>
-						<view class="pay-info__item" v-if="walletDetail.remark">
-							<view class="label">扣除原因</view>
-							<view class="" style="color: #FF8208;">{{walletDetail.remark}}</view>
-						</view>
-					</view>
-				</block>
-
-				<block v-if="walletDetail.businessScene == '撤单-首单奖励扣除'">
-					<view class="pay-source">扣除成功</view>
-					<view class="pay-info">
-						<view class="pay-info__item">
-							<view class="label">交易金额</view>
-							<view class="">{{formatMoney(walletDetail.amount)}}元</view>
-						</view>
-						<view class="pay-info__item">
-							<view class="label">交易时间</view>
-							<view class="">{{walletDetail.paymentTime || '--'}}</view>
-						</view>
-						<view class="pay-info__item" v-if="walletDetail.remark">
-							<view class="label">扣除原因</view>
-							<view class="" style="color: #FF8208;">{{walletDetail.remark}}</view>
-						</view>
-					</view>
-				</block>
-			</block>
-		</block>
-	</view>
-	 <view class="dialog" v-if="dialogShow" @click.stop="dialogShow=false,hash=''">
-    <view class="dialog-content" @click.stop="e=>e.stopPropagation()">
-      <image
-        src="/static/order/pay-upload.png"
-        mode="scaleToFill"
-      />
-      <view class="dialog-title">{{ $t('depositCopy.upload') }}</view>
-      <view class="dialog-input">
-        <input type="text" v-model="hash" @blur="handleBlur" :placeholder=" $t('depositCopy.enterHash')">
-				<uni-icons type="clear" color="#C0C0C0" size="20" @click="clearBtn" style="margin:0 15rpx;"></uni-icons>
-        <view class="paste" @click="pasteBtn">{{ $t('depositCopy.paste') }}</view>
-      </view>
-      <!-- <view class="dialog-danger" v-if="danger">{{ $t('depositCopy.dangerTip') }}</view> -->
-      <view class="dialog-desc">{{ $t('depositCopy.dialogDesc') }}</view>
-      <view class="dialog-btn" @click="handleToVerify" :style="{'background':hash?'#007BFF':'#8FB5FF'}">{{ $t('depositCopy.submitBtn') }}</view>
-    </view>
-  </view>
-	<serviceShow v-if="serviceShowBtn" @close="closeService" :content="configContent" :phone="configContent.phone"></serviceShow>
-</template>
-
-<script setup>
-	import { ref } from 'vue';
-	import { onLoad } from "@dcloudio/uni-app";
-	import WalletAPI from '@/api/wallet';
-	import SupplyAPI from '@/api/supplyHall';
-	import navBar from '@/components/navBar/navBar.vue'
-	import { showToast, formatMoney, formatNumber, formatName } from "@/utils/tools.js"
-	// #ifdef APP
-	import { requestMerchantTransfer } from "@/uni_modules/uni-requestMerchantTransfer"
-	// #endif
-	import serviceShow from '@/components/serviceShow/serviceShow.vue'
-	import { useI18n } from 'vue-i18n'
-
-	const { t } = useI18n()
-	const pageType = ref('')
-	const orderNo = ref('')
-	const walletDetail = ref({})
-	const titleNav=ref(t('deposit.title'))
-	const serviceShowBtn = ref(false)
-	const dialogShow=ref(false)
-	const hash=ref('')
-	const danger=ref(false)
-	const moreShow=ref(false)
-	const configContent = ref({
-		
-	})
-	const lang=ref(uni.getStorageSync('appLang'))
-	const handleServer = () => {
-		serviceShowBtn.value = true
-	}
-	const closeService = () => {
-		serviceShowBtn.value = false
-	}
-	const uploadBtn=()=>{
-		dialogShow.value=true
-	}
-
-	const getConfig = async () => {
-		await SupplyAPI.settingsList({
-			settingsLocation: '客服配置',
-			settingsStatus: 1
-		}).then(res => {
-			if (res.success) {
-				configContent.value = JSON.parse(res.data.sysSettingsList[res.data.sysSettingsList.length - 1]
-					.settingsItemJson)
-			}
-		})
-	};
-
-	onLoad((options) => {
-		pageType.value = options.orderType
-		orderNo.value = options.orderNo
-		getConfig()
-		if (options.orderType == 1) {
-			// 充值单
-			WalletAPI.getRechargeDel({
-				orderNo:options.orderNo
-			}).then(res => {
-				if (res.code == 200) {
-					walletDetail.value = res.data
-				} else {
-					showToast(res.message)
-				}
-			})
-		}
-		if (options.orderType == 2) {
-				titleNav.value= t('withdrawal.title')
-			// 提现单
-			getWithdrawalDeltail()
-		}
-		if (options.orderType > 2) {
-			if (options.category == '0' || options.category == 2 || options.category == 3 || options.category == 4) {
-				// 0. 租赁生产定金 2. 撤单 3. 结算 4. 分红
-				titleNav.value= '收入'
-			} else if (options.category == 101) {
-				// 101. 原材料订单
-				titleNav.value= '支出'
-			}
-			// 商品订单
-			WalletAPI.walletLogDel({
-				orderNo:options.id
-			}).then(res => {
-				if (res.code == 200) {
-					if (res.data.paymentType == 1) {
-						res.data.paymentTypeStr = '支付宝'
-					}
-					if (res.data.paymentType == 2) {
-						res.data.paymentTypeStr = '微信'
-					}
-					if (res.data.paymentType == 3) {
-						res.data.paymentTypeStr = '银联'
-					}
-					if (res.data.paymentType == 4) {
-						res.data.paymentTypeStr = '云闪付'
-					}
-					if (res.data.paymentType == 5) {
-						res.data.paymentTypeStr = '余额'
-					}
-					walletDetail.value = res.data
-				} else {
-					showToast(res.message)
-				}
-			})
-		}
-	})
-
-	const handleToOrder = () => {
-		const orderType = walletDetail.value.orderType == 3 ? 4 : 3
-		uni.navigateTo({
-			url: '/pages-wallet/orderDetail/orderDetail?orderType=' + orderType + '&orderNo=' + walletDetail.value
-				.relatedOrderNo
-		})
-	}
-
-	const handleSubmit = () => {
-		WalletAPI.getWithdrawData({
-			id: walletDetail.value.id
-		}).then(res => {
-			if (res.code == 200) {
-				requestMerchantTransfer({
-					"mchId": res.data.mchId,
-					"appId": res.data.appId,
-					"package": res.data.wxPackageInfo,
-					success: (data) => {
-						getWithdrawalDeltail()
-					},
-					fail: (err) => {},
-				})
-			} else {
-				showToast(res.message)
-			}
-		})
-	}
-
-	const getWithdrawalDeltail = () => {
-		WalletAPI.getWithdrawalDel({
-			orderNo:orderNo.value
-		}).then(res => {
-			if (res.code == 200) {
-				if (res.data.payStatus == null) {
-					res.data.payStatus = 0
-				}
-				// res.data.auditStatus = 1
-				// res.data.payStatus = 0
-				// res.data.auditTime = '2025-09-08'
-				walletDetail.value = res.data
-			} else {
-				showToast(res.message)
-			}
-		})
-	}
-	const clearBtn=()=>{
-		hash.value=''
-	}
-	 const pasteBtn=()=>{
-    // 黏贴到输入框
-    uni.getClipboardData({
-      success: (res) => {
-        console.log(res)
-        hash.value=res.data
-        WalletAPI.txhashUsed({
-          txHash: res.data
-        }).then(res => {
-          
-        })
-      }
-    })
-  }
-  const handleBlur=()=>{
-    if(hash.value){
-      WalletAPI.txhashUsed({
-          txHash: hash.value
-        }).then(res => {
-          
-        })
-    }
-  }
-  const handleToVerify=()=>{
-    if(!hash.value){
-      return
-    }
-    WalletAPI.checkTxhash({
-        txHashUploadMethod:1,
-        txHash: hash.value,
-        orderNo:orderNo.value,
-      }).then(res => {
-        if (res.success) {
-          if(res.data==false){
-            uni.redirectTo({ url: '/pages-wallet/successDeposit/successDeposit' })
-          }else{
-           
-          }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MetaMask USDT Payment</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
-      })
-  }
-	// 取消充值单
-	const handleCancle=()=>{
-		WalletAPI.rechargeCancel({
-			orderNo:orderNo.value
-		}).then(res => {
-			if (res.success) {
-				if(res.data==false){
-					showToast('取消失败')
-				}else{
-					showToast('取消成功')
-					uni.navigateBack({ delta: 1 })
-				}
-			}
-		})
-	}
-</script>
 
-<style lang="scss" scoped>
-.tui-header-right {
-		position: fixed;
-		// top: 0px;
-		right: 0;
-		z-index: 99999;
-		padding: 20rpx 23rpx;
-
-		image {
-			width: 46rpx;
-		}
-	}
-	.result-container {
-		padding: 53rpx 23rpx;
-		font-family: SF Regular;
-
-		.icon-result {
-			width: 96rpx;
-			height: 96rpx;
-			margin: 0 auto 23rpx;
-
-			image {
-				width: 100%;
-				height: 100%;
-			}
-		}
-
-		.pay-source {
-			font-size: 31rpx;
-			margin-bottom: 16rpx;
-			text-align: center;
-		}
-
-		.fail-tip {
-			color: #F73F54;
-			text-align: center;
-		}
-
-		.pay-amount {
-			font-weight: bold;
-			font-size: 58rpx;
-			margin-bottom: 11rpx;
-			text-align: center;
-		}
-
-		.pay-info {
-			width: 100%;
-			// min-height: 465rpx;
-			background: #F6F8FA;
-			border-radius: 19rpx 19rpx 19rpx 19rpx;
-			margin-top: 92rpx;
-			padding:31rpx;
-			box-sizing:border-box;
-
-			&__item {
-				display: flex;
-				// margin-bottom: 30rpx;
-				font-size: 31rpx;
-				padding-top:23rpx;
-				justify-content: space-between;
-				image{
-					width:42rpx; 
-					height:42rpx;
-					display: inline-block;
-				}
-				.label {
-					// width: 200rpx;
-					font-family: SF Regular;
-					font-weight: 400;
-					font-size: 31rpx;
-					color: #717789;
-				}
-
-				.withdraw-rate {
-					font-size: 20rpx;
-					line-height: 20rpx;
-				}
-
-				.fc {
-					// color: #0B3C80;
-
-					.order-no {
-						white-space: nowrap;
-						overflow: hidden;
-						text-overflow: ellipsis;
-						width: 200rpx;
-					}
-				}
-			}
-
-			.upload-tip{
-				width: 108rpx;
-				height: 48rpx;
-				border-radius: 8rpx 8rpx 8rpx 8rpx;
-				border: 2rpx solid #007BFF;
-				font-family: SF Medium;
-				font-weight: 500;
-				font-size: 27rpx;
-				color: #007BFF;
-				display:flex;
-				align-items:center;
-				justify-content:center;
-				margin-left:24rpx;
-			}
-			.related-item {
-				border-bottom: 2rpx solid #E5E5E5;
-				padding-bottom: 30rpx;
-			}
-
-			.progress-wrap {
-				position: relative;
-				color: #B2B2B2;
-				padding-top: 10rpx;
-
-				&__item {
-					padding-left: 70rpx;
-					margin-bottom: 42rpx;
-
-					.label {
-						margin-top: -10rpx;
-					}
-				}
-
-				.result-item {
-					.label {
-						color: #1B1815;
-					}
-				}
-
-				.line-blk {
-					position: absolute;
-					top: 10rpx;
-					left: 0;
-					margin-left: -10rpx;
-
-					.circle {
-						width: 16rpx;
-						height: 16rpx;
-						background: #007BFF;
-						border-radius: 100%;
-						margin: 0 14rpx;
-					}
-
-					.line {
-						width: 2rpx;
-						height: 78rpx;
-						border-left: 2rpx dashed #007BFF;
-						margin: 0 20rpx;
-					}
-
-					image {
-						width: 46rpx;
-						height: 46rpx;
-						margin-left: -4rpx;
-					}
-				}
-			}
-		}
-	}
-	.dialog{
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    .dialog-content{
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 852rpx;
-      background: #FFF;
-      border-radius: 19rpx 19rpx 0 0;
-      padding: 0 52rpx;
-      padding-top:81rpx;
-      box-sizing: border-box;
-      >image{
-        width:115rpx;
-        height:115rpx;
-        display: block;
-        margin: 0 auto;
-      }
-      .dialog-title{
-        font-family: SF Semibold;
-        font-weight: 600;
-        font-size: 42rpx;
-        color: #1B1815;
-        margin-top:62rpx;
-        text-align: center;
-      }
-      .dialog-input{
-        margin: 0 auto;
-        margin-top:46rpx;
-        width:658rpx;
-        padding: 0 35rpx;
-        box-sizing:border-box;
-        height: 115rpx;
-        background: #F5F7FB;
-        border-radius: 23rpx 23rpx 23rpx 23rpx;
-        display:flex;
-        align-items:center;
-        justify-content: space-between;
-        font-family: SF Regular;
-        input{
-          width:80%;
+        body {
+            background: #fff;
+            color: #000;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 20px;
+            padding-top: 40px;
         }
-        .paste{
-          
-          font-weight: 400;
-          font-size: 35rpx;
-          color: #007BFF;
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            background: #fff;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
-      }
-      .dialog-danger{
-        font-family: SF Regular;
-        font-weight: 400;
-        font-size: 27rpx;
-        color: #FF0000;
-        margin-top:19rpx;
-      }
-      .dialog-desc{
-        font-family: SF Regular;
-        font-weight: 400;
-        font-size: 26rpx;
-        color: #FF8208;
-        margin-top:19rpx;
-      }
-      .dialog-btn{
-        position:absolute;
-        bottom:112rpx;
-        left:50%;
-        transform: translateX(-50%);
-        width: 635rpx;
-        height: 85rpx;
-        background: #8FB5FF;
-        border-radius: 42rpx 42rpx 42rpx 42rpx;
-        font-family: SF Medium;
-        font-weight: 500;
-        font-size: 31rpx;
-        color: #FFF;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-    }    
-  }
-	.rejected{
-		width: 608rpx;
-		height: 167rpx;
-		background: #E9F2FF;
-		border-radius: 23rpx 23rpx 23rpx 23rpx;
-		margin-left:35rpx;
-		padding: 23rpx;
-		box-sizing:border-box;
-		display:block !important;
-	}
-</style>
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .back-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background: #fff;
+        }
+
+        .back-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .payment-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .amount-display {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .amount-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #000;
+        }
+
+        .amount-unit {
+            font-size: 18px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .card {
+            background: #f7f7f7;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .transaction-details {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .detail-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .address {
+            font-family: monospace;
+            font-size: 13px;
+            word-break: break-all;
+            color: #000;
+        }
+
+        .buttons {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        button {
+            background: #007AFF;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 14px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            text-align: center;
+        }
+
+        button:hover:not(:disabled) {
+            background: #0066D9;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .transaction-hash-section {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .hash-display {
+            width: 100%;
+            background: #f7f7f7;
+            border-radius: 8px;
+            padding: 12px 15px;
+            color: #000;
+            font-family: monospace;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            word-break: break-all;
+            font-size: 13px;
+        }
+
+        .explorer-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: #007AFF;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .explorer-link:hover {
+            text-decoration: underline;
+        }
+
+        .status-message {
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .status-success {
+            background: rgba(46, 204, 113, 0.1);
+            border: 1px solid rgba(46, 204, 113, 0.3);
+            color: #2ECC71;
+            display: block;
+        }
+
+        .status-error {
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            color: #E74C3C;
+            display: block;
+        }
+
+        .status-info {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            color: #3498DB;
+            display: block;
+        }
+
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 13px;
+        }
+
+        .param-info {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-top">
+            <div class="back-btn">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M15 18L9 12L15 6" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="payment-title">Payment</div>
+            <div></div>
+        </div>
+
+        <div class="amount-display">
+            <span class="amount-value" id="amountValue">0</span>
+            <span class="amount-unit">USDT</span>
+            <div class="param-info">From URL parameter: <span id="amountParamDisplay"></span></div>
+        </div>
+
+        <div class="card">
+            <div class="transaction-details">
+                <div class="detail-row">
+                    <span class="detail-label">From</span>
+                    <span class="address" id="fromAddress">Not connected</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">To</span>
+                    <span class="address" id="toAddress">0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="transaction-details">
+                <div class="detail-row">
+                    <span class="detail-label">Network</span>
+                    <span id="network">Loading...</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Chain ID</span>
+                    <span id="chainIdDisplay">Loading...</span>
+                    <div class="param-info" id="chainIdParamInfo"></div>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Payment Method</span>
+                    <span>MetaMask</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="transaction-details">
+                <div class="detail-row">
+                    <span class="detail-label">Gas Estimate</span>
+                    <span id="gas">Calculating...</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">USDT Contract</span>
+                    <span class="address" id="usdtContract">Loading...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button id="connectWalletBtn">Connect to MetaMask Wallet</button>
+            <button id="sendTransactionBtn" disabled>Send USDT Payment</button>
+        </div>
+
+        <div class="transaction-hash-section" id="transactionHashSection">
+            <p id="statusMessage" class="status-message"></p>
+            <p>USDT transaction sent! Transaction hash:</p>
+            <div class="hash-display" id="transactionHash"></div>
+            <a href="#" target="_blank" id="explorerLink" class="explorer-link">View on block explorer</a>
+        </div>
+
+        <div class="footer">
+            <p>Pay with USDT via MetaMask</p>
+            <p style="margin-top: 5px; font-size: 12px;">Parameters: ?amount=100&chainId=1&toAddress=0x...</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const connectWalletBtn = document.getElementById('connectWalletBtn');
+            const sendTransactionBtn = document.getElementById('sendTransactionBtn');
+            const transactionHashSection = document.getElementById('transactionHashSection');
+            const transactionHash = document.getElementById('transactionHash');
+            const explorerLink = document.getElementById('explorerLink');
+            const statusMessage = document.getElementById('statusMessage');
+            const fromAddress = document.getElementById('fromAddress');
+            const toAddress = document.getElementById('toAddress');
+            const network = document.getElementById('network');
+            const chainIdDisplay = document.getElementById('chainIdDisplay');
+            const gas = document.getElementById('gas');
+            const usdtContract = document.getElementById('usdtContract');
+            const amountValue = document.getElementById('amountValue');
+            const amountParamDisplay = document.getElementById('amountParamDisplay');
+            const chainIdParamInfo = document.getElementById('chainIdParamInfo');
+            
+            // State
+            let currentAccount = null;
+            let currentChainId = null;
+            let urlParams = {};
+            
+            // USDT合约地址映射（不同网络）
+            const USDT_CONTRACT_ADDRESSES = {
+                '1': '0xdAC17F958D2ee523a2206206994597C13D831ec7', // 以太坊主网
+                '5': '0x509Ee0d083DdF8AC028f2a56731412edD63223B9', // Goerli测试网
+                '11155111': '0xaA8E23Fb1079EA71e0a56F48a2aA51851D8433D0', // Sepolia测试网
+                '80001': '0x3813e82e6f7098b9583FC0F33a962D02018B6803' // Mumbai测试网
+            };
+            
+            // 网络名称映射
+            const NETWORK_NAMES = {
+                '1': 'Ethereum Mainnet',
+                '5': 'Goerli Testnet',
+                '11155111': 'Sepolia Testnet',
+                '80001': 'Polygon Mumbai'
+            };
+            
+            // 区块浏览器URL
+            const EXPLORER_URLS = {
+                '1': 'https://etherscan.io',
+                '5': 'https://goerli.etherscan.io',
+                '11155111': 'https://sepolia.etherscan.io',
+                '80001': 'https://mumbai.polygonscan.com'
+            };
+            
+            // USDT ABI (简化版)
+            const USDT_ABI = [
+                {
+                    "constant": false,
+                    "inputs": [
+                        {"name": "_to", "type": "address"},
+                        {"name": "_value", "type": "uint256"}
+                    ],
+                    "name": "transfer",
+                    "outputs": [{"name": "", "type": "bool"}],
+                    "type": "function"
+                },
+                {
+                    "constant": true,
+                    "inputs": [{"name": "_owner", "type": "address"}],
+                    "name": "balanceOf",
+                    "outputs": [{"name": "balance", "type": "uint256"}],
+                    "type": "function"
+                }
+            ];
+            
+            // 从URL获取参数
+            function getUrlParams() {
+                const params = new URLSearchParams(window.location.search);
+                return {
+                    amount: params.get('amount') || '100', // 默认100 USDT
+                    chainId: params.get('chainId') || '1', // 默认以太坊主网
+                    toAddress: params.get('toAddress') || '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D' // 默认地址
+                };
+            }
+            
+            // 初始化页面
+            function initPage() {
+                // 获取URL参数
+                urlParams = getUrlParams();
+                
+                // 更新页面显示
+                amountValue.textContent = parseFloat(urlParams.amount).toFixed(2);
+                amountParamDisplay.textContent = `${urlParams.amount} USDT`;
+                
+                toAddress.textContent = urlParams.toAddress;
+                
+                // 更新链信息
+                chainIdDisplay.textContent = urlParams.chainId;
+                chainIdParamInfo.textContent = `From URL parameter`;
+                
+                // 更新网络名称
+                network.textContent = NETWORK_NAMES[urlParams.chainId] || `Unknown Network (${urlParams.chainId})`;
+                
+                // 更新USDT合约地址
+                usdtContract.textContent = USDT_CONTRACT_ADDRESSES[urlParams.chainId] || 'Not available';
+                
+                // 估算Gas
+                estimateGas();
+                
+                // 检查MetaMask
+                if (checkMetaMask()) {
+                    statusMessage.textContent = 'MetaMask detected. Click "Connect to MetaMask Wallet" to proceed.';
+                    statusMessage.className = 'status-message status-info';
+                }
+            }
+            
+            // 估算Gas费用
+            function estimateGas() {
+                // 实际应用中应该通过web3估算，这里简单模拟
+                gas.textContent = '~0.0015 ETH';
+            }
+            
+            // 检查是否已安装 MetaMask
+            function checkMetaMask() {
+                if (typeof window.ethereum === 'undefined') {
+                    statusMessage.textContent = 'MetaMask not detected. Please install MetaMask or use its mobile browser.';
+                    statusMessage.className = 'status-message status-error';
+                    return false;
+                }
+                return true;
+            }
+            
+            // 连接钱包
+            connectWalletBtn.addEventListener('click', async function() {
+                if (!checkMetaMask()) return;
+                
+                try {
+                    // 请求账户访问
+                    const accounts = await window.ethereum.request({ 
+                        method: 'eth_requestAccounts' 
+                    });
+                    
+                    if (accounts.length === 0) {
+                        statusMessage.textContent = 'No accounts found. Please unlock MetaMask.';
+                        statusMessage.className = 'status-message status-error';
+                        return;
+                    }
+                    
+                    currentAccount = accounts[0];
+                    fromAddress.textContent = currentAccount;
+                    
+                    // 获取当前网络
+                    currentChainId = await window.ethereum.request({ 
+                        method: 'eth_chainId' 
+                    });
+                    currentChainId = parseInt(currentChainId).toString();
+                    
+                    // 检查网络是否匹配
+                    if (currentChainId !== urlParams.chainId) {
+                        statusMessage.textContent = `Please switch to network with Chain ID ${urlParams.chainId}`;
+                        statusMessage.className = 'status-message status-warning';
+                        offerToSwitchNetwork();
+                        return;
+                    }
+                    
+                    // 启用发送交易按钮
+                    sendTransactionBtn.disabled = false;
+                    
+                    statusMessage.textContent = 'Wallet connected successfully!';
+                    statusMessage.className = 'status-message status-success';
+                    
+                    // 监听账户变化
+                    window.ethereum.on('accountsChanged', (accounts) => {
+                        if (accounts.length === 0) {
+                            currentAccount = null;
+                            fromAddress.textContent = 'Not connected';
+                            sendTransactionBtn.disabled = true;
+                            statusMessage.textContent = 'Wallet disconnected';
+                            statusMessage.className = 'status-message status-warning';
+                        } else {
+                            currentAccount = accounts[0];
+                            fromAddress.textContent = currentAccount;
+                        }
+                    });
+                    
+                    // 监听网络变化
+                    window.ethereum.on('chainChanged', (chainId) => {
+                        currentChainId = parseInt(chainId).toString();
+                        checkNetworkCompatibility();
+                    });
+                    
+                } catch (error) {
+                    console.error('Wallet connection failed:', error);
+                    statusMessage.textContent = 'Wallet connection failed: ' + error.message;
+                    statusMessage.className = 'status-message status-error';
+                }
+            });
+            
+            // 检查网络兼容性
+            function checkNetworkCompatibility() {
+                if (currentChainId !== urlParams.chainId) {
+                    statusMessage.textContent = `Please switch to network with Chain ID ${urlParams.chainId}`;
+                    statusMessage.className = 'status-message status-warning';
+                    sendTransactionBtn.disabled = true;
+                    offerToSwitchNetwork();
+                } else {
+                    statusMessage.textContent = 'Network matches required chain ID';
+                    statusMessage.className = 'status-message status-success';
+                    sendTransactionBtn.disabled = false;
+                }
+                
+                // 更新显示的网络信息
+                network.textContent = NETWORK_NAMES[currentChainId] || `Unknown Network (${currentChainId})`;
+                usdtContract.textContent = USDT_CONTRACT_ADDRESSES[currentChainId] || 'Not available';
+            }
+            
+            // 提供切换网络
+            function offerToSwitchNetwork() {
+                if (confirm(`Would you like to switch to network with Chain ID ${urlParams.chainId}?`)) {
+                    switchNetwork(urlParams.chainId);
+                }
+            }
+            
+            // 切换网络
+            async function switchNetwork(chainId) {
+                try {
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: `0x${parseInt(chainId).toString(16)}` }],
+                    });
+                } catch (error) {
+                    console.error('Failed to switch network:', error);
+                    statusMessage.textContent = 'Failed to switch network: ' + error.message;
+                    statusMessage.className = 'status-message status-error';
+                }
+            }
+            
+            // 发送USDT交易
+            sendTransactionBtn.addEventListener('click', async function() {
+                if (!currentAccount) {
+                    statusMessage.textContent = 'Please connect your wallet first';
+                    statusMessage.className = 'status-message status-error';
+                    return;
+                }
+                
+                try {
+                    const amountInUSDT = parseFloat(urlParams.amount);
+                    const toAddressValue = urlParams.toAddress;
+                    
+                    // 验证地址格式
+                    if (!/^0x[a-fA-F0-9]{40}$/.test(toAddressValue)) {
+                        statusMessage.textContent = 'Invalid recipient address format';
+                        statusMessage.className = 'status-message status-error';
+                        return;
+                    }
+                    
+                    // 验证金额
+                    if (isNaN(amountInUSDT) || amountInUSDT <= 0) {
+                        statusMessage.textContent = 'Invalid USDT amount';
+                        statusMessage.className = 'status-message status-error';
+                        return;
+                    }
+                    
+                    // 检查当前网络是否支持USDT
+                    const usdtContractAddress = USDT_CONTRACT_ADDRESSES[currentChainId];
+                    if (!usdtContractAddress) {
+                        statusMessage.textContent = 'USDT is not supported on this network';
+                        statusMessage.className = 'status-message status-error';
+                        return;
+                    }
+                    
+                    // 将USDT转换为最小单位 (6位小数)
+                    const amountInWei = BigInt(Math.floor(amountInUSDT * 1e6));
+                    
+                    // 创建合约实例
+                    const contract = new window.ethereum.eth.Contract(USDT_ABI, usdtContractAddress);
+                    
+                    // 编码转账数据
+                    const transferData = contract.methods.transfer(toAddressValue, amountInWei).encodeABI();
+                    
+                    // 发送交易
+                    statusMessage.textContent = 'Initiating transaction...';
+                    statusMessage.className = 'status-message status-info';
+                    
+                    const txHash = await window.ethereum.request({
+                        method: 'eth_sendTransaction',
+                        params: [{
+                            from: currentAccount,
+                            to: usdtContractAddress,
+                            value: '0x0', // 不发送ETH
+                            data: transferData,
+                            gas: '0x7a120', // 500000 gas
+                        }]
+                    });
+                    
+                    // 显示交易哈希
+                    transactionHash.textContent = txHash;
+                    transactionHashSection.style.display = 'block';
+                    
+                    // 生成区块浏览器链接
+                    updateExplorerLink(txHash);
+                    
+                    statusMessage.textContent = 'USDT transaction sent! Waiting for confirmation...';
+                    statusMessage.className = 'status-message status-info';
+                    
+                    // 监听交易确认
+                    listenForTransactionConfirmation(txHash);
+                    
+                } catch (error) {
+                    console.error('Failed to send USDT transaction:', error);
+                    statusMessage.textContent = 'Transaction failed: ' + error.message;
+                    statusMessage.className = 'status-message status-error';
+                }
+            });
+            
+            // 更新区块浏览器链接
+            function updateExplorerLink(txHash) {
+                const baseUrl = EXPLORER_URLS[currentChainId] || 'https://etherscan.io';
+                explorerLink.href = `${baseUrl}/tx/${txHash}`;
+            }
+            
+            // 监听交易确认
+            function listenForTransactionConfirmation(txHash) {
+                // 实际应用中应该使用轮询或WebSocket监听交易状态
+                // 这里简单模拟
+                const checkInterval = setInterval(async () => {
+                    try {
+                        const txReceipt = await window.ethereum.request({
+                            method: 'eth_getTransactionReceipt',
+                            params: [txHash]
+                        });
+                        
+                        if (txReceipt) {
+                            clearInterval(checkInterval);
+                            if (txReceipt.status === '0x1') {
+                                statusMessage.textContent = 'USDT transaction confirmed! Click to view on explorer.';
+                                statusMessage.className = 'status-message status-success';
+                            } else {
+                                statusMessage.textContent = 'Transaction failed. Please try again.';
+                                statusMessage.className = 'status-message status-error';
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error checking transaction status:', error);
+                        clearInterval(checkInterval);
+                    }
+                }, 3000);
+                
+                // 5分钟后停止检查
+                setTimeout(() => {
+                    clearInterval(checkInterval);
+                }, 5 * 60 * 1000);
+            }
+            
+            // 初始化页面
+            initPage();
+        });
+    </script>
+</body>
+</html>
