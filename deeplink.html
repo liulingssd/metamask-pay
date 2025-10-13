@@ -352,7 +352,6 @@
         </div>
 
         <!-- <div class="transaction-hash-section" id="transactionHashSection">
-            <p id="statusMessage" class="status-message"></p>
             <p>USDT transaction sent! Transaction hash:</p>
             <div class="hash-display" id="transactionHash"></div>
             <a href="#" target="_blank" id="explorerLink" class="explorer-link">View on block explorer</a>
@@ -386,7 +385,6 @@
             const sendTransactionBtn = document.getElementById('sendTransactionBtn');
             const transactionHashSection = document.getElementById('transactionHashSection');
             const transactionHash = document.getElementById('transactionHash');
-            const statusMessage = document.getElementById('statusMessage');
             const fromAddress = document.getElementById('fromAddress');
             const toAddress = document.getElementById('toAddress');
             const network = document.getElementById('network');
@@ -468,9 +466,6 @@
                     web3 = new Web3(window.ethereum);
                     return true;
                 } else {
-                    statusMessage.textContent = 'MetaMask not detected. Please install MetaMask first.';
-                    statusMessage.className = 'status-message status-error';
-                    statusMessage.style.display = 'block';
                     return false;
                 }
             }
@@ -489,9 +484,6 @@
                     // 检查余额是否充足
                     const transferAmount = parseFloat(urlParams.amount);
                     if (parseFloat(balanceUSDT) < transferAmount) {
-                        statusMessage.textContent = `Insufficient USDT balance! Need ${transferAmount} USDT, current: ${balanceUSDT} USDT`;
-                        statusMessage.className = 'status-message status-error';
-                        statusMessage.style.display = 'block';
                         sendTransactionBtn.disabled = true;
                     } else {
                         sendTransactionBtn.disabled = false;
@@ -522,21 +514,21 @@
                     connectWalletBtn.disabled = true;
                 } else {
                     // 检查是否已有连接的账户
-                    // window.ethereum.request({ method: 'eth_accounts' })
-                    //     .then(accounts => {
-                    //         if (accounts.length > 0) {
-                    //             getUSDTBalance();
-                    //             // 有账户：显示发送按钮，隐藏连接按钮
-                    //             currentAccount = accounts[0];
-                    //             fromAddress.textContent = currentAccount;
-                    //             toggleButtons(false); // 关键：互斥显示
-                    //         } else {
-                    //             // 无账户：显示连接按钮，隐藏发送按钮
-                    //             currentAccount = null;
-                    //             fromAddress.textContent = 'Not connected';
-                    //             toggleButtons(true); // 关键：互斥显示
-                    //         }
-                    //     });
+                    window.ethereum.request({ method: 'eth_accounts' })
+                        .then(accounts => {
+                            if (accounts.length > 0) {
+                                getUSDTBalance();
+                                // 有账户：显示发送按钮，隐藏连接按钮
+                                currentAccount = accounts[0];
+                                fromAddress.textContent = currentAccount;
+                                toggleButtons(false); // 关键：互斥显示
+                            } else {
+                                // 无账户：显示连接按钮，隐藏发送按钮
+                                currentAccount = null;
+                                fromAddress.textContent = 'Not connected';
+                                toggleButtons(true); // 关键：互斥显示
+                            }
+                        });
                     
                     // 监听账户变化（切换/断开账户时）
                     window.ethereum.on('accountsChanged', async (accounts) => {
@@ -587,27 +579,18 @@
                     
                     // 检查网络是否匹配
                     if (currentChainId !== urlParams.chainId) {
-                        statusMessage.textContent = `Please switch to ${NETWORK_NAMES[urlParams.chainId]} (Chain ID: ${urlParams.chainId})`;
-                        statusMessage.className = 'status-message status-warning';
-                        statusMessage.style.display = 'block';
                         sendTransactionBtn.disabled = true;
                         
                         if (confirm(`Would you like to switch to ${NETWORK_NAMES[urlParams.chainId]}?`)) {
                             await switchNetwork(urlParams.chainId);
                         }
                     } else {
-                        statusMessage.textContent = 'Wallet connected successfully!';
-                        statusMessage.className = 'status-message status-success';
-                        statusMessage.style.display = 'block';
                         getUSDTBalance();
                     }
                     
                 } catch (error) {
                     console.error('Wallet connection failed:', error);
                     // 连接失败：恢复显示连接按钮，隐藏发送按钮
-                    statusMessage.textContent = `Connection failed: ${error.message || 'Unknown error'}`;
-                    statusMessage.className = 'status-message status-error';
-                    statusMessage.style.display = 'block';
                     toggleButtons(true); // 关键：互斥显示
                 }
             });
@@ -619,28 +602,18 @@
                         method: 'wallet_switchEthereumChain',
                         params: [{ chainId: `0x${parseInt(chainId).toString(16)}` }]
                     });
-                    statusMessage.textContent = 'Network switched successfully!';
-                    statusMessage.className = 'status-message status-success';
-                    statusMessage.style.display = 'block';
                     getUSDTBalance();
                 } catch (error) {
                     console.error('Network switch failed:', error);
                     if (error.code === 4902) {
-                        statusMessage.textContent = `Network not found! Please add ${NETWORK_NAMES[chainId]} to MetaMask first.`;
                     } else {
-                        statusMessage.textContent = `Failed to switch network: ${error.message}`;
                     }
-                    statusMessage.className = 'status-message status-error';
-                    statusMessage.style.display = 'block';
                 }
             }
             
             // 8. 发送交易按钮点击事件
             sendTransactionBtn.addEventListener('click', async function() {
                 if (!currentAccount || !web3 || !currentChainId) {
-                    statusMessage.textContent = 'Please connect wallet first';
-                    statusMessage.className = 'status-message status-error';
-                    statusMessage.style.display = 'block';
                     toggleButtons(true); // 异常情况：恢复显示连接按钮
                     return;
                 }
@@ -671,9 +644,6 @@
                     const transferData = usdtContract.methods.transfer(toAddr, amountWei).encodeABI();
                     
                     // 更新状态
-                    statusMessage.textContent = 'Initiating transaction... Please confirm in MetaMask';
-                    statusMessage.className = 'status-message status-info';
-                    statusMessage.style.display = 'block';
                     sendTransactionBtn.disabled = true;
                     
                     // 发送交易
@@ -701,9 +671,6 @@
                     } else if (error.message.includes('reverted')) {
                         errorMsg = 'Transaction reverted! Check if USDT contract address is correct.';
                     }
-                    statusMessage.textContent = errorMsg;
-                    statusMessage.className = 'status-message status-error';
-                    statusMessage.style.display = 'block';
                     sendTransactionBtn.disabled = false;
                 }
             });
@@ -712,8 +679,6 @@
             closeModalBtn.addEventListener('click', function() {
                 initiationModal.style.display = 'none';
                 transactionHashSection.style.display = 'block';
-                statusMessage.textContent = 'Transaction sent! Waiting for confirmation...';
-                statusMessage.className = 'status-message status-info';
                 window.close();
             });
             
@@ -746,8 +711,6 @@
                     
                 } catch (error) {
                     console.error('Failed to send TxHash to backend:', error);
-                    statusMessage.textContent = `Transaction confirmed, but failed to sync TxHash: ${error.message}`;
-                    statusMessage.className = 'status-message status-warning';
                     return false;
                 }
             }
