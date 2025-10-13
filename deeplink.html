@@ -397,19 +397,22 @@
                 '1': '0xdAC17F958D2ee523a2206206994597C13D831ec7', // 主网
                 '5': '0x509Ee0d083DdF8AC028f2a56731412edD63223B9', // Goerli
                 '11155111': '0x7169D38820dfd117C3FA1f22a697dBA58d90BA06', // Sepolia（正确地址）
-                '80001': '0x3813e82e6f7098b9583FC0F33a962D02018B6803' // Polygon Mumbai
+                '80001': '0x3813e82e6f7098b9583FC0F33a962D02018B6803',// Polygon Mumbai
+                '56':'0x55d398326f99059fF775485246999027B319795'
             };
             const NETWORK_NAMES = {
                 '1': 'Ethereum Mainnet',
                 '5': 'Goerli Testnet',
                 '11155111': 'Sepolia Testnet',
-                '80001': 'Polygon Mumbai'
+                '80001': 'Polygon Mumbai',
+                '56':'Binance Smart Chain'
             };
             const EXPLORER_URLS = {
                 '1': 'https://etherscan.io',
                 '5': 'https://goerli.etherscan.io',
                 '11155111': 'https://sepolia.etherscan.io',
-                '80001': 'https://mumbai.polygonscan.com'
+                '80001': 'https://mumbai.polygonscan.com',
+                '56':'https://bscscan.com'
             };
             
             // USDT ABI - 仅包含必要方法
@@ -680,10 +683,8 @@
                         }]
                     });
                     
-                    // 显示弹窗
-                    
-                    // 发送哈希给后端
-                    sendTxHashToBackend(txHash);
+                    // 监听交易确认
+                    await listenTxConfirmation(txHash);
                     
                 } catch (error) {
                     console.error('Transaction failed:', error);
@@ -702,8 +703,34 @@
                 initiationModal.style.display = 'none';
                 setTimeout(closePage, 1000);
             });
-            
-            // 10. 将交易哈希发送给后端
+            // 10. 监听交易确认
+            async function listenTxConfirmation(txHash) {
+                const checkInterval = setInterval(async () => {
+                    try {
+                        const txReceipt = await web3.eth.getTransactionReceipt(txHash);
+                        if (txReceipt) {
+                            clearInterval(checkInterval);
+                            if (txReceipt.status === '0x1') {
+                                // 交易成功：发送哈希给后端
+                                if (!isTxHashSent) {
+                                    await sendTxHashToBackend(txHash);
+                                    isTxHashSent = true;
+                                }
+                                getUSDTBalance();
+                            } else {
+                                sendTransactionBtn.disabled = false;
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Check tx status failed:', error);
+                        clearInterval(checkInterval);
+                    }
+                }, 3000);
+                
+                // 5分钟后停止检查
+                setTimeout(() => clearInterval(checkInterval), 5 * 60 * 1000);
+            }
+            // 11. 将交易哈希发送给后端
             async function sendTxHashToBackend(txHash) {
                 const { orderNo } = urlParams;
                 const requestData = {
