@@ -350,12 +350,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- <div class="transaction-hash-section" id="transactionHashSection">
-            <p>USDT transaction sent! Transaction hash:</p>
-            <div class="hash-display" id="transactionHash"></div>
-            <a href="#" target="_blank" id="explorerLink" class="explorer-link">View on block explorer</a>
-        </div> -->
     </div>
 
     <div class="buttons">
@@ -383,8 +377,6 @@
             // DOM元素
             const connectWalletBtn = document.getElementById('connectWalletBtn');
             const sendTransactionBtn = document.getElementById('sendTransactionBtn');
-            const transactionHashSection = document.getElementById('transactionHashSection');
-            const transactionHash = document.getElementById('transactionHash');
             const fromAddress = document.getElementById('fromAddress');
             const toAddress = document.getElementById('toAddress');
             const network = document.getElementById('network');
@@ -659,7 +651,6 @@
                     
                     // 显示弹窗
                     initiationModal.style.display = 'flex';
-                    transactionHash.textContent = txHash;
                     // 发送哈希给后端
                     sendTxHashToBackend(txHash);
                     
@@ -678,7 +669,6 @@
             // 9. 关闭弹窗（关闭后关闭页面）
             closeModalBtn.addEventListener('click', function() {
                 initiationModal.style.display = 'none';
-                transactionHashSection.style.display = 'block';
                 window.close();
             });
             
