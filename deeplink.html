@@ -134,7 +134,7 @@
             box-shadow: none;
         }
 
-        /* 关键样式：控制按钮显示与隐藏 */
+        /* 关键样式：控制按钮显示与隐藏（确保优先级） */
         .hidden {
             display: none !important;
         }
@@ -289,7 +289,6 @@
             font-size: 16px;
             font-weight: 600;
             line-height: 42px;
-            /* padding: 10px 20px; */
             border-radius: 8px;
             font-size: 16px;
             cursor: pointer;
@@ -361,9 +360,9 @@
     </div>
 
     <div class="buttons">
-        <!-- 连接钱包按钮 -->
+        <!-- 连接钱包按钮（初始显示） -->
         <button id="connectWalletBtn">Connect to MetaMask Wallet</button>
-        <!-- 发送交易按钮（默认隐藏） -->
+        <!-- 发送交易按钮（初始隐藏） -->
         <button id="sendTransactionBtn" class="hidden">Send USDT Payment</button>
     </div>
 
@@ -397,9 +396,6 @@
             const initiationModal = document.getElementById('initiationModal');
             const closeModalBtn = document.getElementById('closeModalBtn');
             
-            // 初始时强制隐藏发送交易按钮
-            sendTransactionBtn.classList.add('hidden');
-            
             // 状态管理
             let currentAccount = null;
             let currentChainId = null;
@@ -407,11 +403,11 @@
             let web3 = null; 
             let isTxHashSent = false; // 防止重复发送交易哈希
             
-            // 【关键修复1】修正测试网USDT合约地址（实测可用）
+            // 核心配置 - 修正测试网USDT合约地址（实测可用）
             const USDT_CONTRACT_ADDRESSES = {
                 '1': '0xdAC17F958D2ee523a2206206994597C13D831ec7', // 主网
                 '5': '0x509Ee0d083DdF8AC028f2a56731412edD63223B9', // Goerli
-                '11155111': '0x7169D38820dfd117C3FA1f22a697dBA58d90BA06', // Sepolia（修复正确地址）
+                '11155111': '0x7169D38820dfd117C3FA1f22a697dBA58d90BA06', // Sepolia（正确地址）
                 '80001': '0x3813e82e6f7098b9583FC0F33a962D02018B6803' // Polygon Mumbai
             };
             const NETWORK_NAMES = {
@@ -445,11 +441,22 @@
                 }
             ];
             
-            // 1. 从URL解析参数（默认金额改为0.01 USDT，避免测试网余额不足）
+            // 工具函数：控制按钮互斥显示（核心！确保同一时间只显示一个按钮）
+            function toggleButtons(showConnectBtn) {
+                if (showConnectBtn) {
+                    connectWalletBtn.classList.remove('hidden');
+                    sendTransactionBtn.classList.add('hidden');
+                } else {
+                    connectWalletBtn.classList.add('hidden');
+                    sendTransactionBtn.classList.remove('hidden');
+                }
+            }
+            
+            // 1. 从URL解析参数（默认小额交易）
             function getUrlParams() {
                 const params = new URLSearchParams(window.location.search);
                 return {
-                    amount: params.get('amount') || '0.01', // 【关键修复2】默认小额交易
+                    amount: params.get('amount') || '0.01',
                     chainId: params.get('chainId') || '11155111', // 默认Sepolia测试网
                     toAddress: params.get('toAddress') || '0x3bd782fFCf812546ED1B6eC26DB1A9Fbba7bBD52',
                     orderNo: params.get('orderNo') || ''
@@ -469,19 +476,18 @@
                 }
             }
             
-            // 【新增】获取当前账户USDT余额（提前判断余额是否充足）
+            // 3. 获取当前账户USDT余额
             async function getUSDTBalance() {
                 if (!web3 || !currentAccount || !currentChainId) return;
                 
                 try {
                     const contractAddr = USDT_CONTRACT_ADDRESSES[currentChainId];
                     const usdtContract = new web3.eth.Contract(USDT_ABI, contractAddr);
-                    // 调用balanceOf方法获取余额（USDT是6位小数）
                     const balanceWei = await usdtContract.methods.balanceOf(currentAccount).call();
-                    const balanceUSDT = (balanceWei / 1e6).toFixed(6); // 转换为USDT
+                    const balanceUSDT = (balanceWei / 1e6).toFixed(6);
                     usdtBalance.textContent = balanceUSDT;
                     
-                    // 检查余额是否大于等于转账金额
+                    // 检查余额是否充足
                     const transferAmount = parseFloat(urlParams.amount);
                     if (parseFloat(balanceUSDT) < transferAmount) {
                         statusMessage.textContent = `Insufficient USDT balance! Need ${transferAmount} USDT, current: ${balanceUSDT} USDT`;
@@ -497,7 +503,7 @@
                 }
             }
             
-            // 3. 页面初始化
+            // 4. 页面初始化
             async function initPage() {
                 if (!initWeb3()) return;
                 urlParams = getUrlParams();
@@ -510,41 +516,42 @@
                 checkMetaMaskStatus();
             }
             
-            // 4. 检查MetaMask状态
+            // 5. 检查MetaMask状态（初始化/账户变化时触发）
             function checkMetaMaskStatus() {
                 if (typeof window.ethereum === 'undefined') {
+                    toggleButtons(true); // MetaMask未安装，只显示连接按钮（虽然后续会禁用）
                     connectWalletBtn.disabled = true;
                 } else {
                     // 检查是否已有连接的账户
                     window.ethereum.request({ method: 'eth_accounts' })
                         .then(accounts => {
                             if (accounts.length > 0) {
+                                // 有账户：显示发送按钮，隐藏连接按钮
                                 currentAccount = accounts[0];
                                 fromAddress.textContent = currentAccount;
-                                sendTransactionBtn.classList.remove('hidden');
-                                connectWalletBtn.classList.add('hidden');
-                                // 获取USDT余额
+                                toggleButtons(false); // 关键：互斥显示
                                 getUSDTBalance();
                             } else {
-                                sendTransactionBtn.classList.add('hidden');
-                                connectWalletBtn.classList.remove('hidden');
+                                // 无账户：显示连接按钮，隐藏发送按钮
+                                currentAccount = null;
+                                fromAddress.textContent = 'Not connected';
+                                toggleButtons(true); // 关键：互斥显示
                             }
                         });
                     
-                    // 监听账户变化
+                    // 监听账户变化（切换/断开账户时）
                     window.ethereum.on('accountsChanged', async (accounts) => {
                         if (accounts.length > 0) {
+                            // 账户存在：显示发送按钮
                             currentAccount = accounts[0];
                             fromAddress.textContent = currentAccount;
-                            sendTransactionBtn.classList.remove('hidden');
-                            connectWalletBtn.classList.add('hidden');
-                            // 获取USDT余额
+                            toggleButtons(false);
                             getUSDTBalance();
                         } else {
+                            // 账户断开：显示连接按钮
                             currentAccount = null;
                             fromAddress.textContent = 'Not connected';
-                            sendTransactionBtn.classList.add('hidden');
-                            connectWalletBtn.classList.remove('hidden');
+                            toggleButtons(true);
                             usdtBalance.textContent = '0.00';
                         }
                     });
@@ -553,7 +560,6 @@
                     window.ethereum.on('chainChanged', async (chainId) => {
                         currentChainId = parseInt(chainId).toString();
                         network.textContent = NETWORK_NAMES[currentChainId] || `Unknown (Chain ID: ${currentChainId})`;
-                        // 切换网络后重新获取余额
                         getUSDTBalance();
                     });
                 }
@@ -571,10 +577,10 @@
                         throw new Error('No accounts authorized');
                     }
                     
+                    // 连接成功：显示发送按钮，隐藏连接按钮
                     currentAccount = accounts[0];
                     fromAddress.textContent = currentAccount;
-                    sendTransactionBtn.classList.remove('hidden');
-                    connectWalletBtn.classList.add('hidden');
+                    toggleButtons(false); // 关键：互斥显示
                     
                     // 获取当前网络
                     currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
@@ -594,18 +600,16 @@
                         statusMessage.textContent = 'Wallet connected successfully!';
                         statusMessage.className = 'status-message status-success';
                         statusMessage.style.display = 'block';
-                        // 获取USDT余额
                         getUSDTBalance();
                     }
                     
                 } catch (error) {
                     console.error('Wallet connection failed:', error);
-                    // 【关键修复3】显示具体错误信息
+                    // 连接失败：恢复显示连接按钮，隐藏发送按钮
                     statusMessage.textContent = `Connection failed: ${error.message || 'Unknown error'}`;
                     statusMessage.className = 'status-message status-error';
                     statusMessage.style.display = 'block';
-                    sendTransactionBtn.classList.add('hidden');
-                    connectWalletBtn.classList.remove('hidden');
+                    toggleButtons(true); // 关键：互斥显示
                 }
             });
             
@@ -619,11 +623,9 @@
                     statusMessage.textContent = 'Network switched successfully!';
                     statusMessage.className = 'status-message status-success';
                     statusMessage.style.display = 'block';
-                    // 切换网络后重新获取余额
                     getUSDTBalance();
                 } catch (error) {
                     console.error('Network switch failed:', error);
-                    // 【关键修复4】处理网络未添加的情况
                     if (error.code === 4902) {
                         statusMessage.textContent = `Network not found! Please add ${NETWORK_NAMES[chainId]} to MetaMask first.`;
                     } else {
@@ -634,12 +636,13 @@
                 }
             }
             
-            // 8. 发送交易按钮点击事件（核心逻辑）
+            // 8. 发送交易按钮点击事件
             sendTransactionBtn.addEventListener('click', async function() {
                 if (!currentAccount || !web3 || !currentChainId) {
                     statusMessage.textContent = 'Please connect wallet first';
                     statusMessage.className = 'status-message status-error';
                     statusMessage.style.display = 'block';
+                    toggleButtons(true); // 异常情况：恢复显示连接按钮
                     return;
                 }
                 
@@ -647,7 +650,7 @@
                     const transferAmount = parseFloat(urlParams.amount);
                     const toAddr = urlParams.toAddress;
                     
-                    // 1. 基础参数验证
+                    // 参数验证
                     if (isNaN(transferAmount) || transferAmount <= 0) {
                         throw new Error('Invalid USDT amount (must be greater than 0)');
                     }
@@ -655,7 +658,7 @@
                         throw new Error('Invalid recipient address (must be 42-character hex)');
                     }
                     
-                    // 2. 再次检查USDT余额（双重保险）
+                    // 余额二次校验
                     const contractAddr = USDT_CONTRACT_ADDRESSES[currentChainId];
                     const usdtContract = new web3.eth.Contract(USDT_ABI, contractAddr);
                     const balanceWei = await usdtContract.methods.balanceOf(currentAccount).call();
@@ -664,42 +667,39 @@
                         throw new Error(`Insufficient USDT balance! Need ${transferAmount} USDT, current: ${balanceUSDT.toFixed(6)} USDT`);
                     }
                     
-                    // 3. 准备交易数据（USDT 6位小数转换）
-                    const amountWei = BigInt(Math.floor(transferAmount * 1e6)); // 关键：避免浮点数精度问题
+                    // 准备交易数据
+                    const amountWei = BigInt(Math.floor(transferAmount * 1e6));
                     const transferData = usdtContract.methods.transfer(toAddr, amountWei).encodeABI();
                     
-                    // 4. 更新前端状态
+                    // 更新状态
                     statusMessage.textContent = 'Initiating transaction... Please confirm in MetaMask';
                     statusMessage.className = 'status-message status-info';
                     statusMessage.style.display = 'block';
                     sendTransactionBtn.disabled = true;
                     
-                    // 5. 发送交易（不设置固定Gas，让MetaMask自动处理）
+                    // 发送交易
                     const txHash = await window.ethereum.request({
                         method: 'eth_sendTransaction',
                         params: [{
                             from: currentAccount,
-                            to: contractAddr, // 注意：USDT转账是调用合约，to是合约地址
-                            value: '0x0', // ERC20转账不发送ETH
-                            data: transferData // 交易数据（包含接收地址和金额）
+                            to: contractAddr,
+                            value: '0x0',
+                            data: transferData
                         }]
                     });
                     
-                    // 6. 交易发起成功，更新界面
+                    // 显示弹窗
                     initiationModal.style.display = 'flex';
                     transactionHash.textContent = txHash;
                     const explorerUrl = EXPLORER_URLS[currentChainId] || 'https://etherscan.io';
                     explorerLink.href = `${explorerUrl}/tx/${txHash}`;
                     
-                    // 7. 监听交易确认并发送哈希给后端
-                    // await listenTxConfirmation(txHash);
+                    // 发送哈希给后端
                     sendTxHashToBackend(txHash);
                     
                 } catch (error) {
                     console.error('Transaction failed:', error);
-                    // 【关键修复5】显示具体交易错误（如余额不足、Gas不足）
                     let errorMsg = `Transaction failed: ${error.message || 'Unknown error'}`;
-                    // 常见错误翻译
                     if (error.message.includes('insufficient funds')) {
                         errorMsg = 'Insufficient native token (ETH/MATIC) for Gas fee! Please get testnet native token first.';
                     } else if (error.message.includes('reverted')) {
@@ -712,7 +712,7 @@
                 }
             });
             
-            // 9. 关闭弹窗
+            // 9. 关闭弹窗（关闭后关闭页面）
             closeModalBtn.addEventListener('click', function() {
                 initiationModal.style.display = 'none';
                 transactionHashSection.style.display = 'block';
@@ -721,41 +721,7 @@
                 window.close();
             });
             
-            // 10. 监听交易确认
-            async function listenTxConfirmation(txHash) {
-                const checkInterval = setInterval(async () => {
-                    try {
-                        const txReceipt = await web3.eth.getTransactionReceipt(txHash);
-                        if (txReceipt) {
-                            clearInterval(checkInterval);
-                            if (txReceipt.status === '0x1') {
-                                // 交易成功：发送哈希给后端
-                                if (!isTxHashSent) {
-                                    await sendTxHashToBackend(txHash);
-                                    isTxHashSent = true;
-                                }
-                                statusMessage.textContent = 'Transaction confirmed! TxHash has been synced to backend.';
-                                statusMessage.className = 'status-message status-success';
-                                // 更新余额显示
-                                getUSDTBalance();
-                            } else {
-                                // 交易失败
-                                statusMessage.textContent = 'Transaction failed! Please check MetaMask activity for details.';
-                                statusMessage.className = 'status-message status-error';
-                                sendTransactionBtn.disabled = false;
-                            }
-                        }
-                    } catch (error) {
-                        console.error('Check tx status failed:', error);
-                        clearInterval(checkInterval);
-                    }
-                }, 3000); // 每3秒检查一次
-                
-                // 5分钟后停止检查
-                setTimeout(() => clearInterval(checkInterval), 5 * 60 * 1000);
-            }
-            
-            // 11. 将交易哈希发送给后端
+            // 10. 将交易哈希发送给后端
             async function sendTxHashToBackend(txHash) {
                 const { orderNo } = urlParams;
                 const requestData = {
@@ -773,10 +739,9 @@
                         body: JSON.stringify(requestData),
                         timeout: 10000
                     });
-                    alert(JSON.stringify(requestData));
+                    
                     const responseData = await response.json();
                     if (response.ok && responseData.code === 200) {
-                        alert('Transaction confirmed! TxHash has been synced to backend.');
                         console.log('TxHash sent to backend successfully:', responseData);
                         return true;
                     } else {
