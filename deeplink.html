@@ -261,6 +261,10 @@
         .modal-icon {
             margin-bottom: 20px;
         }
+        .modal-icon img{
+            width: 60px;
+            height:60px;
+        }
 
         .modal-title {
             font-size: 20px;
@@ -277,10 +281,15 @@
         }
 
         .modal-btn {
-            background-color: #007AFF;
             color: white;
             border: none;
-            padding: 10px 20px;
+            height: 42px;
+            background: #007BFF;
+            border-radius: 21px;
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 42px;
+            /* padding: 10px 20px; */
             border-radius: 8px;
             font-size: 16px;
             cursor: pointer;
@@ -363,10 +372,7 @@
         <div class="modal-overlay"></div>
         <div class="modal-content">
             <div class="modal-icon">
-                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="12" cy="12" r="12" fill="#007AFF" opacity="0.15"/>
-                    <path d="M9 16.17L4.83 12L3.41 13.41L9 19L21 7L19.59 5.59L9 16.17Z" fill="#007AFF"/>
-                </svg>
+                <img src="https://cdn-tech.kuangyid.com/1760344567235.png" alt="">
             </div>
             <h3 class="modal-title">Payment initiated.</h3>
             <p class="modal-text">System confirmation in progress. Please return to QuarryReach to await the final result.</p>
@@ -516,10 +522,12 @@
                                 currentAccount = accounts[0];
                                 fromAddress.textContent = currentAccount;
                                 sendTransactionBtn.classList.remove('hidden');
+                                connectWalletBtn.classList.add('hidden');
                                 // 获取USDT余额
                                 getUSDTBalance();
                             } else {
                                 sendTransactionBtn.classList.add('hidden');
+                                connectWalletBtn.classList.remove('hidden');
                             }
                         });
                     
@@ -529,12 +537,14 @@
                             currentAccount = accounts[0];
                             fromAddress.textContent = currentAccount;
                             sendTransactionBtn.classList.remove('hidden');
+                            connectWalletBtn.classList.add('hidden');
                             // 获取USDT余额
                             getUSDTBalance();
                         } else {
                             currentAccount = null;
                             fromAddress.textContent = 'Not connected';
                             sendTransactionBtn.classList.add('hidden');
+                            connectWalletBtn.classList.remove('hidden');
                             usdtBalance.textContent = '0.00';
                         }
                     });
@@ -564,6 +574,7 @@
                     currentAccount = accounts[0];
                     fromAddress.textContent = currentAccount;
                     sendTransactionBtn.classList.remove('hidden');
+                    connectWalletBtn.classList.add('hidden');
                     
                     // 获取当前网络
                     currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
@@ -594,6 +605,7 @@
                     statusMessage.className = 'status-message status-error';
                     statusMessage.style.display = 'block';
                     sendTransactionBtn.classList.add('hidden');
+                    connectWalletBtn.classList.remove('hidden');
                 }
             });
             
@@ -706,6 +718,7 @@
                 transactionHashSection.style.display = 'block';
                 statusMessage.textContent = 'Transaction sent! Waiting for confirmation...';
                 statusMessage.className = 'status-message status-info';
+                window.close();
             });
             
             // 10. 监听交易确认
@@ -760,7 +773,7 @@
                         body: JSON.stringify(requestData),
                         timeout: 10000
                     });
-                    
+                    alert(JSON.stringify(requestData));
                     const responseData = await response.json();
                     if (response.ok && responseData.code === 200) {
                         alert('Transaction confirmed! TxHash has been synced to backend.');
