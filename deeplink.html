@@ -522,21 +522,21 @@
                     connectWalletBtn.disabled = true;
                 } else {
                     // 检查是否已有连接的账户
-                    window.ethereum.request({ method: 'eth_accounts' })
-                        .then(accounts => {
-                            if (accounts.length > 0) {
-                                getUSDTBalance();
-                                // 有账户：显示发送按钮，隐藏连接按钮
-                                currentAccount = accounts[0];
-                                fromAddress.textContent = currentAccount;
-                                toggleButtons(false); // 关键：互斥显示
-                            } else {
-                                // 无账户：显示连接按钮，隐藏发送按钮
-                                currentAccount = null;
-                                fromAddress.textContent = 'Not connected';
-                                toggleButtons(true); // 关键：互斥显示
-                            }
-                        });
+                    // window.ethereum.request({ method: 'eth_accounts' })
+                    //     .then(accounts => {
+                    //         if (accounts.length > 0) {
+                    //             getUSDTBalance();
+                    //             // 有账户：显示发送按钮，隐藏连接按钮
+                    //             currentAccount = accounts[0];
+                    //             fromAddress.textContent = currentAccount;
+                    //             toggleButtons(false); // 关键：互斥显示
+                    //         } else {
+                    //             // 无账户：显示连接按钮，隐藏发送按钮
+                    //             currentAccount = null;
+                    //             fromAddress.textContent = 'Not connected';
+                    //             toggleButtons(true); // 关键：互斥显示
+                    //         }
+                    //     });
                     
                     // 监听账户变化（切换/断开账户时）
                     window.ethereum.on('accountsChanged', async (accounts) => {
