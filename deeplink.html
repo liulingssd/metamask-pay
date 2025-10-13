@@ -711,7 +711,7 @@
                         alert(JSON.stringify(txReceipt))
                         if (txReceipt) {
                             clearInterval(checkInterval);
-                            if (txReceipt.status === '0x1') {
+                            if (txReceipt.status) {
                                 // 交易成功：发送哈希给后端
                                 if (!isTxHashSent) {
                                     await sendTxHashToBackend(txHash);
