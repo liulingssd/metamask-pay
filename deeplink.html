@@ -689,9 +689,10 @@
                         },
                         body: JSON.stringify(requestData),
                     });
-                    console.log(responseData)
-                    alert(JSON.stringify(responseData))
+                    console.log(response)
+                    alert(JSON.stringify(response))
                     const responseData = await response.json();
+                    alert(JSON.stringify(responseData))
                     if (response.success) {
                         console.log('TxHash sent to backend successfully:', responseData);
                         return true;
