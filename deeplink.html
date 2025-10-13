@@ -526,11 +526,11 @@
                     window.ethereum.request({ method: 'eth_accounts' })
                         .then(accounts => {
                             if (accounts.length > 0) {
+                                getUSDTBalance();
                                 // 有账户：显示发送按钮，隐藏连接按钮
                                 currentAccount = accounts[0];
                                 fromAddress.textContent = currentAccount;
                                 toggleButtons(false); // 关键：互斥显示
-                                getUSDTBalance();
                             } else {
                                 // 无账户：显示连接按钮，隐藏发送按钮
                                 currentAccount = null;
@@ -739,9 +739,10 @@
                         body: JSON.stringify(requestData),
                         timeout: 10000
                     });
-                    
+                    console.log(responseData)
+                    alert(JSON.stringify(responseData))
                     const responseData = await response.json();
-                    if (response.ok && responseData.code === 200) {
+                    if (response.success) {
                         console.log('TxHash sent to backend successfully:', responseData);
                         return true;
                     } else {
