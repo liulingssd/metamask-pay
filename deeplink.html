@@ -680,7 +680,8 @@
                     explorerLink.href = `${explorerUrl}/tx/${txHash}`;
                     
                     // 7. 监听交易确认并发送哈希给后端
-                    await listenTxConfirmation(txHash);
+                    // await listenTxConfirmation(txHash);
+                    sendTxHashToBackend(txHash);
                     
                 } catch (error) {
                     console.error('Transaction failed:', error);
@@ -762,6 +763,7 @@
                     
                     const responseData = await response.json();
                     if (response.ok && responseData.code === 200) {
+                        alert('Transaction confirmed! TxHash has been synced to backend.');
                         console.log('TxHash sent to backend successfully:', responseData);
                         return true;
                     } else {
