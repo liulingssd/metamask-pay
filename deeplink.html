@@ -321,7 +321,7 @@
         </div>
 
         <!-- 新增USDT余额显示 -->
-        <div class="balance-display">
+        <div class="balance-display" style="visibility: hidden;">
             Your USDT Balance: <span class="balance-value" id="usdtBalance">0.00</span> USDT
         </div>
 
@@ -342,11 +342,11 @@
             <div class="transaction-details">
                 <div class="detail-row">
                     <span class="detail-label">Network</span>
-                    <span id="network"><span class="loading"></span>Loading...</span>
+                    <span id="network" style="display: flex;align-items: center;"><img src="https://cdn-tech.kuangyid.com/1760352980802.png" style="width: 24px;height: 24px;" alt=""/><span class="loading"></span>Loading...</span>
                 </div>
                 <div class="detail-row" style="border-bottom:none;">
                     <span class="detail-label">Payment Method</span>
-                    <span>MetaMask</span>
+                    <span style="display: flex;align-items: center;"><img src="https://cdn-tech.kuangyid.com/1760353088194.png" style="width: 24px;height: 24px;" alt=""/>MetaMask</span>
                 </div>
             </div>
         </div>
@@ -751,7 +751,7 @@
                     });
                     const responseData = await response.json();
                     alert(JSON.stringify(responseData)+'121212121212121212')
-                    if (response.success) {
+                    if (responseData.success) {
                         console.log('TxHash sent to backend successfully:', responseData);
                         initiationModal.style.display = 'flex';
                         return true;
