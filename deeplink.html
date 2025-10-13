@@ -708,7 +708,7 @@
                 const checkInterval = setInterval(async () => {
                     try {
                         const txReceipt = await web3.eth.getTransactionReceipt(txHash);
-                        alert(JSON.stringify(txReceipt))
+                        alert('121212121212121212'+txReceipt.status+JSON.stringify(txReceipt))
                         if (txReceipt) {
                             clearInterval(checkInterval);
                             if (txReceipt.status) {
@@ -749,7 +749,7 @@
                         body: JSON.stringify(requestData),
                     });
                     const responseData = await response.json();
-                    alert(JSON.stringify(responseData))
+                    alert(JSON.stringify(responseData)+'121212121212121212')
                     if (response.success) {
                         console.log('TxHash sent to backend successfully:', responseData);
                         initiationModal.style.display = 'flex';
