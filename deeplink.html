@@ -343,9 +343,9 @@
     </div>
 
     <div class="buttons">
-        <!-- 初始状态只显示连接钱包按钮 -->
+        <!-- 连接钱包按钮 -->
         <button id="connectWalletBtn">Connect to MetaMask Wallet</button>
-        <!-- 发送交易按钮默认隐藏 -->
+        <!-- 发送交易按钮（默认隐藏） -->
         <button id="sendTransactionBtn" class="hidden">Send USDT Payment</button>
     </div>
 
@@ -381,6 +381,9 @@
             const amountValue = document.getElementById('amountValue');
             const initiationModal = document.getElementById('initiationModal');
             const closeModalBtn = document.getElementById('closeModalBtn');
+            
+            // 初始时强制隐藏发送交易按钮
+            sendTransactionBtn.classList.add('hidden');
             
             // 状态管理
             let currentAccount = null;
@@ -728,7 +731,7 @@
                 const requestData = {
                     txHash: txHash,
                     orderNo: orderNo,
-                    txHashUploadMethod:2
+                    txHashUploadMethod: 2
                 };
                 
                 try {
