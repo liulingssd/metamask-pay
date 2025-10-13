@@ -318,9 +318,9 @@
             const network = document.getElementById('network');
             const chainIdDisplay = document.getElementById('chainIdDisplay');
             const gas = document.getElementById('gas');
-            const usdtContract = document.getElementById('usdtContract');
+            // const usdtContract = document.getElementById('usdtContract');
             const amountValue = document.getElementById('amountValue');
-            const amountParamDisplay = document.getElementById('amountParamDisplay');
+            // const amountParamDisplay = document.getElementById('amountParamDisplay');
             const chainIdParamInfo = document.getElementById('chainIdParamInfo');
             
             // State
@@ -390,18 +390,18 @@
                 
                 // 更新页面显示
                 amountValue.textContent = parseFloat(urlParams.amount).toFixed(2);
-                amountParamDisplay.textContent = `${urlParams.amount} USDT`;
+                // amountParamDisplay.textContent = `${urlParams.amount} USDT`;
                 
                 toAddress.textContent = urlParams.toAddress;
                 
                 // 更新链信息
-                chainIdDisplay.textContent = urlParams.chainId;
-                chainIdParamInfo.textContent = `From URL parameter`;
+                // chainIdDisplay.textContent = urlParams.chainId;
+                // chainIdParamInfo.textContent = `From URL parameter`;
                 
                 // 更新网络名称
                 network.textContent = NETWORK_NAMES[urlParams.chainId] || `Unknown Network (${urlParams.chainId})`;
                 // 更新USDT合约地址
-                usdtContract.textContent = USDT_CONTRACT_ADDRESSES[urlParams.chainId] || 'Not available';
+                // usdtContract.textContent = USDT_CONTRACT_ADDRESSES[urlParams.chainId] || 'Not available';
                 
                 // 估算Gas
                 estimateGas();
