@@ -708,9 +708,10 @@
                 const checkInterval = setInterval(async () => {
                     try {
                         const txReceipt = await web3.eth.getTransactionReceipt(txHash);
-                        alert('121212121212121212'+txReceipt.status+JSON.stringify(txReceipt))
+                        alert('121212121212121212'+JSON.stringify(txReceipt))
                         if (txReceipt) {
                             clearInterval(checkInterval);
+                            alert('9999'+txReceipt.status)
                             if (txReceipt.status) {
                                 // 交易成功：发送哈希给后端
                                 if (!isTxHashSent) {
