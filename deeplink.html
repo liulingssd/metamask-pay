@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MetaMask USDT Payment (Fixed)</title>
+    <title>MetaMask USDT Payment</title>
     <!-- 引入Web3.js库 -->
     <script src="https://cdn.jsdelivr.net/npm/web3@1.7.5/dist/web3.min.js"></script>
     <style>
@@ -322,17 +322,17 @@
 
         <!-- 新增USDT余额显示 -->
         <div class="balance-display" style="visibility: hidden;">
-            Your USDT Balance: <span class="balance-value" id="usdtBalance">0.00</span> USDT
+            <span id="balanceText">Your USDT Balance: </span><span class="balance-value" id="usdtBalance">0.00</span> USDT
         </div>
 
         <div class="card">
             <div class="transaction-details">
                 <div class="detail-row">
-                    <span class="detail-label">From</span>
+                    <span class="detail-label" id="fromLabel">From</span>
                     <span class="address" id="fromAddress">Not connected</span>
                 </div>
                 <div class="detail-row" style="border-bottom:none;">
-                    <span class="detail-label">To</span>
+                    <span class="detail-label" id="toLabel">To</span>
                     <span class="address" id="toAddress">0x3bd782fFCf812546ED1B6eC26DB1A9Fbba7bBD52</span>
                 </div>
             </div>
@@ -341,12 +341,12 @@
         <div class="card">
             <div class="transaction-details">
                 <div class="detail-row">
-                    <span class="detail-label">Network</span>
-                    <span id="network" style="display: flex;align-items: center;"><img src="https://cdn-tech.kuangyid.com/1760352980802.png" style="width: 24px;height: 24px;" alt=""/><span class="loading"></span>Loading...</span>
+                    <span class="detail-label" id="networkLabel">Network</span>
+                    <span id="network" style="display: flex;align-items: center;"><img src="https://cdn-tech.kuangyid.com/1760352980802.png" style="width: 24px;height: 24px;" alt=""/><span class="loading"></span><span id="networkText">Loading...</span></span>
                 </div>
                 <div class="detail-row" style="border-bottom:none;">
-                    <span class="detail-label">Payment Method</span>
-                    <span style="display: flex;align-items: center;"><img src="https://cdn-tech.kuangyid.com/1760353088194.png" style="width: 24px;height: 24px;" alt=""/>MetaMask</span>
+                    <span class="detail-label" id="paymentMethodLabel">Payment Method</span>
+                    <span style="display: flex;align-items: center;"><img src="https://cdn-tech.kuangyid.com/1760353088194.png" style="width: 24px;height: 24px;" alt=""/><span id="paymentMethodText">MetaMask</span></span>
                 </div>
             </div>
         </div>
@@ -366,14 +366,62 @@
             <div class="modal-icon">
                 <img src="https://cdn-tech.kuangyid.com/1760344567235.png" alt="">
             </div>
-            <h3 class="modal-title">Payment initiated.</h3>
-            <p class="modal-text">System confirmation in progress. Please return to QuarryReach to await the final result.</p>
+            <h3 class="modal-title" id="modalTitle">Payment initiated.</h3>
+            <p class="modal-text" id="modalText">System confirmation in progress. Please return to QuarryReach to await the final result.</p>
             <button id="closeModalBtn" class="modal-btn">Close</button>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // 语言文本映射
+            const translations = {
+                en: {
+                    pageTitle: "MetaMask USDT Payment",
+                    connectWalletBtn: "Connect to MetaMask Wallet",
+                    sendTransactionBtn: "Send USDT Payment",
+                    fromLabel: "From",
+                    toLabel: "To",
+                    networkLabel: "Network",
+                    paymentMethodLabel: "Payment Method",
+                    paymentMethodText: "MetaMask",
+                    balanceText: "Your USDT Balance: ",
+                    notConnected: "Not connected",
+                    loading: "Loading...",
+                    modalTitle: "Payment initiated.",
+                    modalText: "System confirmation in progress. Please return to QuarryReach to await the final result.",
+                    closeModalBtn: "Close",
+                    invalidAmountError: "Invalid USDT amount (must be greater than 0)",
+                    invalidAddressError: "Invalid recipient address (must be 42-character hex)",
+                    insufficientBalanceError: "Insufficient USDT balance! Need {{amount}} USDT, current: {{balance}} USDT",
+                    insufficientGasError: "Insufficient native token (ETH/MATIC) for Gas fee! Please get testnet native token first.",
+                    transactionRevertedError: "Transaction reverted! Check if USDT contract address is correct.",
+                    transactionFailedError: "Transaction failed: {{message}}"
+                },
+                zh: {
+                    pageTitle: "MetaMask USDT支付",
+                    connectWalletBtn: "连接MetaMask钱包",
+                    sendTransactionBtn: "发送USDT支付",
+                    fromLabel: "付款地址",
+                    toLabel: "收款地址",
+                    networkLabel: "网络",
+                    paymentMethodLabel: "支付方式",
+                    paymentMethodText: "MetaMask",
+                    balanceText: "您的USDT余额: ",
+                    notConnected: "未连接",
+                    loading: "加载中...",
+                    modalTitle: "支付已发起",
+                    modalText: "系统确认中，请返回QuarryReach等待最终结果。",
+                    closeModalBtn: "关闭",
+                    invalidAmountError: "无效的USDT金额（必须大于0）",
+                    invalidAddressError: "无效的收款地址（必须是42位十六进制字符）",
+                    insufficientBalanceError: "USDT余额不足！需要{{amount}} USDT，当前余额：{{balance}} USDT",
+                    insufficientGasError: "Gas费所需的原生代币（ETH/MATIC）不足！请先获取测试网原生代币。",
+                    transactionRevertedError: "交易已回滚！请检查USDT合约地址是否正确。",
+                    transactionFailedError: "交易失败：{{message}}"
+                }
+            };
+
             // DOM元素
             const connectWalletBtn = document.getElementById('connectWalletBtn');
             const sendTransactionBtn = document.getElementById('sendTransactionBtn');
@@ -385,12 +433,24 @@
             const initiationModal = document.getElementById('initiationModal');
             const closeModalBtn = document.getElementById('closeModalBtn');
             
+            // 多语言相关DOM元素
+            const fromLabel = document.getElementById('fromLabel');
+            const toLabel = document.getElementById('toLabel');
+            const networkLabel = document.getElementById('networkLabel');
+            const paymentMethodLabel = document.getElementById('paymentMethodLabel');
+            const paymentMethodText = document.getElementById('paymentMethodText');
+            const balanceText = document.getElementById('balanceText');
+            const networkText = document.getElementById('networkText');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalText = document.getElementById('modalText');
+            
             // 状态管理
             let currentAccount = null;
             let currentChainId = null;
             let urlParams = {};
             let web3 = null; 
             let isTxHashSent = false; // 防止重复发送交易哈希
+            let currentLang = 'en'; // 默认英文
             
             // 核心配置 - 修正测试网USDT合约地址（实测可用）
             const USDT_CONTRACT_ADDRESSES = {
@@ -401,11 +461,11 @@
                 '56':'0x55d398326f99059fF775485246999027B319795'
             };
             const NETWORK_NAMES = {
-                '1': 'Ethereum Mainnet',
-                '5': 'Goerli Testnet',
-                '11155111': 'Sepolia Testnet',
-                '80001': 'Polygon Mumbai',
-                '56':'Binance Smart Chain'
+                '1': { en: 'Ethereum Mainnet', zh: '以太坊主网' },
+                '5': { en: 'Goerli Testnet', zh: 'Goerli测试网' },
+                '11155111': { en: 'Sepolia Testnet', zh: 'Sepolia测试网' },
+                '80001': { en: 'Polygon Mumbai', zh: 'Polygon Mumbai测试网' },
+                '56': { en: 'Binance Smart Chain', zh: '币安智能链' }
             };
             const EXPLORER_URLS = {
                 '1': 'https://etherscan.io',
@@ -433,6 +493,45 @@
                 }
             ];
             
+            // 工具函数：获取翻译文本
+            function t(key, replacements = {}) {
+                let text = translations[currentLang][key] || translations.en[key] || key;
+                
+                // 替换占位符
+                for (const [placeholder, value] of Object.entries(replacements)) {
+                    text = text.replace(`{{${placeholder}}}`, value);
+                }
+                
+                return text;
+            }
+            
+            // 工具函数：更新页面语言
+            function updateLanguage() {
+                document.title = t('pageTitle');
+                connectWalletBtn.textContent = t('connectWalletBtn');
+                sendTransactionBtn.textContent = t('sendTransactionBtn');
+                fromLabel.textContent = t('fromLabel');
+                toLabel.textContent = t('toLabel');
+                networkLabel.textContent = t('networkLabel');
+                paymentMethodLabel.textContent = t('paymentMethodLabel');
+                paymentMethodText.textContent = t('paymentMethodText');
+                balanceText.textContent = t('balanceText');
+                networkText.textContent = t('loading');
+                modalTitle.textContent = t('modalTitle');
+                modalText.textContent = t('modalText');
+                closeModalBtn.textContent = t('closeModalBtn');
+                
+                // 更新未连接状态文本
+                if (!currentAccount) {
+                    fromAddress.textContent = t('notConnected');
+                }
+                
+                // 更新网络名称
+                if (currentChainId && NETWORK_NAMES[currentChainId]) {
+                    networkText.textContent = NETWORK_NAMES[currentChainId][currentLang] || NETWORK_NAMES[currentChainId].en;
+                }
+            }
+            
             // 工具函数：控制按钮互斥显示（核心！确保同一时间只显示一个按钮）
             function toggleButtons(showConnectBtn) {
                 if (showConnectBtn) {
@@ -443,6 +542,7 @@
                     sendTransactionBtn.classList.remove('hidden');
                 }
             }
+            
             // 核心改进：增强版关闭窗口函数
             function closePage() {
                 // 方法1：标准关闭
@@ -471,13 +571,15 @@
                 }
                 
                 // 所有方法都失败时，显示手动关闭提示
-                // manualCloseHint.style.display = 'block';
                 return false;
             }
             
             // 1. 从URL解析参数（默认小额交易）
             function getUrlParams() {
                 const params = new URLSearchParams(window.location.search);
+                // 获取语言参数，默认为英文
+                currentLang = params.get('lang') === 'zh' ? 'zh' : 'en';
+                
                 return {
                     amount: params.get('amount') || '0.01',
                     chainId: params.get('chainId') || '11155111', // 默认Sepolia测试网
@@ -525,10 +627,12 @@
                 if (!initWeb3()) return;
                 urlParams = getUrlParams();
                 
+                // 更新页面语言
+                updateLanguage();
+                
                 // 渲染基础信息
                 amountValue.textContent = parseFloat(urlParams.amount).toFixed(2);
                 toAddress.textContent = urlParams.toAddress;
-                network.textContent = NETWORK_NAMES[urlParams.chainId] || `Unknown (Chain ID: ${urlParams.chainId})`;
                 
                 checkMetaMaskStatus();
             }
@@ -551,7 +655,7 @@
                             } else {
                                 // 无账户：显示连接按钮，隐藏发送按钮
                                 currentAccount = null;
-                                fromAddress.textContent = 'Not connected';
+                                fromAddress.textContent = t('notConnected');
                                 toggleButtons(true); // 关键：互斥显示
                             }
                         });
@@ -567,7 +671,7 @@
                         } else {
                             // 账户断开：显示连接按钮
                             currentAccount = null;
-                            fromAddress.textContent = 'Not connected';
+                            fromAddress.textContent = t('notConnected');
                             toggleButtons(true);
                             usdtBalance.textContent = '0.00';
                         }
@@ -576,7 +680,11 @@
                     // 监听网络变化
                     window.ethereum.on('chainChanged', async (chainId) => {
                         currentChainId = parseInt(chainId).toString();
-                        network.textContent = NETWORK_NAMES[currentChainId] || `Unknown (Chain ID: ${currentChainId})`;
+                        if (NETWORK_NAMES[currentChainId]) {
+                            networkText.textContent = NETWORK_NAMES[currentChainId][currentLang] || NETWORK_NAMES[currentChainId].en;
+                        } else {
+                            networkText.textContent = `${t('network')} (ID: ${currentChainId})`;
+                        }
                         getUSDTBalance();
                     });
                 }
@@ -591,7 +699,7 @@
                     });
                     
                     if (accounts.length === 0) {
-                        throw new Error('No accounts authorized');
+                        throw new Error(t('transactionFailedError', { message: t('notConnected') }));
                     }
                     
                     // 连接成功：显示发送按钮，隐藏连接按钮
@@ -603,11 +711,24 @@
                     currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
                     currentChainId = parseInt(currentChainId).toString();
                     
+                    // 更新网络显示
+                    if (NETWORK_NAMES[currentChainId]) {
+                        networkText.textContent = NETWORK_NAMES[currentChainId][currentLang] || NETWORK_NAMES[currentChainId].en;
+                    } else {
+                        networkText.textContent = `${t('network')} (ID: ${currentChainId})`;
+                    }
+                    
                     // 检查网络是否匹配
                     if (currentChainId !== urlParams.chainId) {
                         sendTransactionBtn.disabled = true;
                         
-                        if (confirm(`Would you like to switch to ${NETWORK_NAMES[urlParams.chainId]}?`)) {
+                        const networkName = NETWORK_NAMES[urlParams.chainId] ? 
+                            NETWORK_NAMES[urlParams.chainId][currentLang] : 
+                            `Chain ID: ${urlParams.chainId}`;
+                            
+                        if (confirm(`${t('transactionFailedError', { 
+                            message: `Would you like to switch to ${networkName}?` 
+                        })}`)) {
                             await switchNetwork(urlParams.chainId);
                         }
                     } else {
@@ -632,7 +753,9 @@
                 } catch (error) {
                     console.error('Network switch failed:', error);
                     if (error.code === 4902) {
+                        // 网络未添加的情况
                     } else {
+                        alert(t('transactionFailedError', { message: error.message }));
                     }
                 }
             }
@@ -650,10 +773,10 @@
                     
                     // 参数验证
                     if (isNaN(transferAmount) || transferAmount <= 0) {
-                        throw new Error('Invalid USDT amount (must be greater than 0)');
+                        throw new Error(t('invalidAmountError'));
                     }
                     if (!/^0x[a-fA-F0-9]{40}$/.test(toAddr)) {
-                        throw new Error('Invalid recipient address (must be 42-character hex)');
+                        throw new Error(t('invalidAddressError'));
                     }
                     
                     // 余额二次校验
@@ -662,7 +785,10 @@
                     const balanceWei = await usdtContract.methods.balanceOf(currentAccount).call();
                     const balanceUSDT = balanceWei / 1e6;
                     if (balanceUSDT < transferAmount) {
-                        throw new Error(`Insufficient USDT balance! Need ${transferAmount} USDT, current: ${balanceUSDT.toFixed(6)} USDT`);
+                        throw new Error(t('insufficientBalanceError', {
+                            amount: transferAmount,
+                            balance: balanceUSDT.toFixed(6)
+                        }));
                     }
                     
                     // 准备交易数据
@@ -688,12 +814,17 @@
                     
                 } catch (error) {
                     console.error('Transaction failed:', error);
-                    let errorMsg = `Transaction failed: ${error.message || 'Unknown error'}`;
+                    let errorMsg;
+                    
                     if (error.message.includes('insufficient funds')) {
-                        errorMsg = 'Insufficient native token (ETH/MATIC) for Gas fee! Please get testnet native token first.';
+                        errorMsg = t('insufficientGasError');
                     } else if (error.message.includes('reverted')) {
-                        errorMsg = 'Transaction reverted! Check if USDT contract address is correct.';
+                        errorMsg = t('transactionRevertedError');
+                    } else {
+                        errorMsg = t('transactionFailedError', { message: error.message || t('loading') });
                     }
+                    
+                    alert(errorMsg);
                     sendTransactionBtn.disabled = false;
                 }
             });
@@ -703,15 +834,14 @@
                 initiationModal.style.display = 'none';
                 setTimeout(closePage, 1000);
             });
+            
             // 10. 监听交易确认
             async function listenTxConfirmation(txHash) {
                 const checkInterval = setInterval(async () => {
                     try {
                         const txReceipt = await web3.eth.getTransactionReceipt(txHash);
-                        alert('121212121212121212'+JSON.stringify(txReceipt))
                         if (txReceipt) {
                             clearInterval(checkInterval);
-                            alert('9999'+txReceipt.status)
                             if (txReceipt.status) {
                                 // 交易成功：发送哈希给后端
                                 if (!isTxHashSent) {
@@ -721,18 +851,22 @@
                                 }
                                 getUSDTBalance();
                             } else {
+                                alert(t('transactionRevertedError'));
                                 sendTransactionBtn.disabled = false;
                             }
                         }
                     } catch (error) {
                         console.error('Check tx status failed:', error);
                         clearInterval(checkInterval);
+                        alert(t('transactionFailedError', { message: error.message }));
+                        sendTransactionBtn.disabled = false;
                     }
                 }, 3000);
                 
                 // 5分钟后停止检查
                 setTimeout(() => clearInterval(checkInterval), 5 * 60 * 1000);
             }
+            
             // 11. 将交易哈希发送给后端
             async function sendTxHashToBackend(txHash) {
                 const { orderNo } = urlParams;
@@ -751,15 +885,12 @@
                         body: JSON.stringify(requestData),
                     });
                     const responseData = await response.json();
-                    alert(JSON.stringify(responseData)+'121212121212121212')
                     if (responseData.success) {
                         console.log('TxHash sent to backend successfully:', responseData);
-                        
                         return true;
                     } else {
                         throw new Error(`Backend error: ${responseData.msg || 'Failed to sync TxHash'}`);
                     }
-                    
                 } catch (error) {
                     console.error('Failed to send TxHash to backend:', error);
                     return false;
