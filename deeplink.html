@@ -351,12 +351,12 @@
             </div>
         </div>
 
-        <div class="transaction-hash-section" id="transactionHashSection">
+        <!-- <div class="transaction-hash-section" id="transactionHashSection">
             <p id="statusMessage" class="status-message"></p>
             <p>USDT transaction sent! Transaction hash:</p>
             <div class="hash-display" id="transactionHash"></div>
             <a href="#" target="_blank" id="explorerLink" class="explorer-link">View on block explorer</a>
-        </div>
+        </div> -->
     </div>
 
     <div class="buttons">
@@ -386,7 +386,6 @@
             const sendTransactionBtn = document.getElementById('sendTransactionBtn');
             const transactionHashSection = document.getElementById('transactionHashSection');
             const transactionHash = document.getElementById('transactionHash');
-            const explorerLink = document.getElementById('explorerLink');
             const statusMessage = document.getElementById('statusMessage');
             const fromAddress = document.getElementById('fromAddress');
             const toAddress = document.getElementById('toAddress');
@@ -691,9 +690,6 @@
                     // 显示弹窗
                     initiationModal.style.display = 'flex';
                     transactionHash.textContent = txHash;
-                    const explorerUrl = EXPLORER_URLS[currentChainId] || 'https://etherscan.io';
-                    explorerLink.href = `${explorerUrl}/tx/${txHash}`;
-                    
                     // 发送哈希给后端
                     sendTxHashToBackend(txHash);
                     
@@ -737,7 +733,6 @@
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify(requestData),
-                        timeout: 10000
                     });
                     console.log(responseData)
                     alert(JSON.stringify(responseData))
