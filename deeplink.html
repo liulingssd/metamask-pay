@@ -845,7 +845,6 @@
                             if (txReceipt.status) {
                                 // 交易成功：发送哈希给后端
                                 if (!isTxHashSent) {
-                                    initiationModal.style.display = 'flex';
                                     await setTimeout(() => sendTxHashToBackend(txHash), 5000);
                                     isTxHashSent = true;
                                 }
@@ -886,7 +885,7 @@
                     });
                     const responseData = await response.json();
                     if (responseData.success) {
-                        console.log('TxHash sent to backend successfully:', responseData);
+                        initiationModal.style.display = 'flex';
                         return true;
                     } else {
                         throw new Error(`Backend error: ${responseData.msg || 'Failed to sync TxHash'}`);
