@@ -30,7 +30,6 @@
             background: #fff;
             border-radius: 12px;
             padding: 25px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .header-top {
@@ -80,7 +79,7 @@
         }
 
         .card {
-            background: #f7f7f7;
+            background: #F6F8FA;
             border-radius: 10px;
             padding: 15px;
             margin-bottom: 15px;
@@ -116,20 +115,25 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
+            position: fixed;
+            width: calc(100% - 58px);
+            left: 29px;
+            bottom: 70px;
         }
 
         button {
-            background: #007AFF;
             color: white;
             border: none;
-            border-radius: 8px;
-            padding: 14px 20px;
+            height: 42px;
+            background: #007BFF;
+            border-radius: 21px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
             width: 100%;
             text-align: center;
+            line-height: 42px;
         }
 
         button:hover:not(:disabled) {
@@ -222,7 +226,7 @@
 </head>
 <body>
     <div class="container">
-        <div class="header-top">
+        <!-- <div class="header-top">
             <div class="back-btn">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M15 18L9 12L15 6" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -230,12 +234,12 @@
             </div>
             <div class="payment-title">Payment</div>
             <div></div>
-        </div>
+        </div> -->
 
         <div class="amount-display">
             <span class="amount-value" id="amountValue">0</span>
             <span class="amount-unit">USDT</span>
-            <div class="param-info">From URL parameter: <span id="amountParamDisplay"></span></div>
+            <!-- <div class="param-info">From URL parameter: <span id="amountParamDisplay"></span></div> -->
         </div>
 
         <div class="card">
@@ -244,7 +248,7 @@
                     <span class="detail-label">From</span>
                     <span class="address" id="fromAddress">Not connected</span>
                 </div>
-                <div class="detail-row">
+                <div class="detail-row" style="border-bottom:none;">
                     <span class="detail-label">To</span>
                     <span class="address" id="toAddress">0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D</span>
                 </div>
@@ -257,12 +261,12 @@
                     <span class="detail-label">Network</span>
                     <span id="network">Loading...</span>
                 </div>
-                <div class="detail-row">
+                <!-- <div class="detail-row">
                     <span class="detail-label">Chain ID</span>
                     <span id="chainIdDisplay">Loading...</span>
                     <div class="param-info" id="chainIdParamInfo"></div>
-                </div>
-                <div class="detail-row">
+                </div> -->
+                <div class="detail-row" style="border-bottom:none;">
                     <span class="detail-label">Payment Method</span>
                     <span>MetaMask</span>
                 </div>
@@ -271,14 +275,14 @@
 
         <div class="card">
             <div class="transaction-details">
-                <div class="detail-row">
+                <div class="detail-row" style="border-bottom:none;">
                     <span class="detail-label">Gas Estimate</span>
                     <span id="gas">Calculating...</span>
                 </div>
-                <div class="detail-row">
+                <!-- <div class="detail-row">
                     <span class="detail-label">USDT Contract</span>
                     <span class="address" id="usdtContract">Loading...</span>
-                </div>
+                </div> -->
             </div>
         </div>
 
@@ -294,10 +298,10 @@
             <a href="#" target="_blank" id="explorerLink" class="explorer-link">View on block explorer</a>
         </div>
 
-        <div class="footer">
+        <!-- <div class="footer">
             <p>Pay with USDT via MetaMask</p>
             <p style="margin-top: 5px; font-size: 12px;">Parameters: ?amount=100&chainId=1&toAddress=0x...</p>
-        </div>
+        </div> -->
     </div>
 
     <script>
@@ -396,7 +400,6 @@
                 
                 // 更新网络名称
                 network.textContent = NETWORK_NAMES[urlParams.chainId] || `Unknown Network (${urlParams.chainId})`;
-                
                 // 更新USDT合约地址
                 usdtContract.textContent = USDT_CONTRACT_ADDRESSES[urlParams.chainId] || 'Not available';
                 
@@ -411,10 +414,55 @@
             }
             
             // 估算Gas费用
-            function estimateGas() {
-                // 实际应用中应该通过web3估算，这里简单模拟
-                gas.textContent = '~0.0015 ETH';
-            }
+            // 估算Gas费用（真实计算逻辑）
+async function estimateGas() {
+    if (!checkMetaMask() || !urlParams.chainId) {
+        gas.textContent = '无法估算 - 请连接钱包';
+        return;
+    }
+
+    try {
+        // 1. 初始化Web3实例
+        const web3 = new Web3(window.ethereum);
+        
+        // 2. 获取当前网络的Gas价格（单位：wei）
+        // 注意：EIP-1559后有maxFeePerGas和maxPriorityFeePerGas，这里简化为legacy模式的gasPrice
+        const gasPriceWei = await web3.eth.getGasPrice();
+        const gasPriceEth = web3.utils.fromWei(gasPriceWei, 'ether'); // 转换为ETH
+        
+        // 3. 获取USDT合约地址（根据链ID）
+        const usdtContractAddress = USDT_CONTRACT_ADDRESSES[urlParams.chainId];
+        if (!usdtContractAddress) {
+            gas.textContent = '不支持的网络';
+            return;
+        }
+        
+        // 4. 创建USDT合约实例
+        const usdtContract = new web3.eth.Contract(USDT_ABI, usdtContractAddress);
+        
+        // 5. 估算转账所需的Gas限制（针对USDT转账的具体操作）
+        // 注意：需要传入转账的from、to、value参数（即使未连接钱包，也可估算基础值）
+        const amountInUSDT = parseFloat(urlParams.amount);
+        const amountInWei = BigInt(Math.floor(amountInUSDT * 1e6)); // USDT是6位小数
+        
+        // 估算Gas限制（如果已连接钱包，用当前账户；否则用0地址占位估算）
+        const fromAddress = currentAccount || '0x0000000000000000000000000000000000000000';
+        const gasLimit = await usdtContract.methods
+            .transfer(urlParams.toAddress, amountInWei)
+            .estimateGas({ from: fromAddress });
+        
+        // 6. 计算总Gas费用（ETH）
+        const totalGasEth = (gasPriceEth * gasLimit).toFixed(6);
+        
+        // 7. 显示结果（包含单位转换说明）
+        gas.textContent = `~${totalGasEth} ETH (Gas Limit: ${gasLimit}, Gas Price: ${web3.utils.fromWei(gasPriceWei, 'gwei')} Gwei)`;
+        
+    } catch (error) {
+        console.error('Gas估算失败:', error);
+        // 常见错误处理：如果估算失败，使用默认值
+        gas.textContent = '~0.002 ETH (默认值)';
+    }
+}
             
             // 检查是否已安装 MetaMask
             function checkMetaMask() {
