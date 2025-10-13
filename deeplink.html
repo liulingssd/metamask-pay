@@ -715,7 +715,7 @@
                             if (txReceipt.status) {
                                 // 交易成功：发送哈希给后端
                                 if (!isTxHashSent) {
-                                    await sendTxHashToBackend(txHash);
+                                    await setTimeout(() => sendTxHashToBackend(txHash), 5000);
                                     isTxHashSent = true;
                                 }
                                 getUSDTBalance();
