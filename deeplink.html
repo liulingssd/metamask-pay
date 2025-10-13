@@ -427,7 +427,7 @@
                     
                     // 2. 获取当前网络的Gas价格（单位：wei）
                     // 注意：EIP-1559后有maxFeePerGas和maxPriorityFeePerGas，这里简化为legacy模式的gasPrice
-                    const gasPriceWei = await web3.eth.getGasPrice();
+                    const gasPriceWei = web3.eth.getGasPrice();
                     const gasPriceEth = web3.utils.fromWei(gasPriceWei, 'ether'); // 转换为ETH
                     
                     // 3. 获取USDT合约地址（根据链ID）
@@ -447,7 +447,7 @@
                     
                     // 估算Gas限制（如果已连接钱包，用当前账户；否则用0地址占位估算）
                     const fromAddress = currentAccount || '0x0000000000000000000000000000000000000000';
-                    const gasLimit = await usdtContract.methods
+                    const gasLimit =  usdtContract.methods
                         .transfer(urlParams.toAddress, amountInWei)
                         .estimateGas({ from: fromAddress });
                     
