@@ -440,6 +440,37 @@
                     sendTransactionBtn.classList.remove('hidden');
                 }
             }
+            // 核心改进：增强版关闭窗口函数
+            function closePage() {
+                // 方法1：标准关闭
+                if (window.close()) {
+                    return true;
+                }
+                
+                // 方法2：尝试通过打开自身再关闭的方式（部分浏览器有效）
+                try {
+                    window.open('', '_self', '');
+                    if (window.close()) {
+                        return true;
+                    }
+                } catch (e) {
+                    console.log('Close method 2 failed:', e);
+                }
+                
+                // 方法3：对于框架内打开的页面，尝试关闭顶层窗口
+                try {
+                    if (window.top && window.top !== window) {
+                        window.top.close();
+                        return true;
+                    }
+                } catch (e) {
+                    console.log('Close method 3 failed:', e);
+                }
+                
+                // 所有方法都失败时，显示手动关闭提示
+                // manualCloseHint.style.display = 'block';
+                return false;
+            }
             
             // 1. 从URL解析参数（默认小额交易）
             function getUrlParams() {
@@ -650,7 +681,7 @@
                     });
                     
                     // 显示弹窗
-                    initiationModal.style.display = 'flex';
+                    
                     // 发送哈希给后端
                     sendTxHashToBackend(txHash);
                     
@@ -669,7 +700,7 @@
             // 9. 关闭弹窗（关闭后关闭页面）
             closeModalBtn.addEventListener('click', function() {
                 initiationModal.style.display = 'none';
-                window.close();
+                setTimeout(closePage, 1000);
             });
             
             // 10. 将交易哈希发送给后端
@@ -689,12 +720,11 @@
                         },
                         body: JSON.stringify(requestData),
                     });
-                    console.log(response)
-                    alert(JSON.stringify(response))
                     const responseData = await response.json();
                     alert(JSON.stringify(responseData))
                     if (response.success) {
                         console.log('TxHash sent to backend successfully:', responseData);
+                        initiationModal.style.display = 'flex';
                         return true;
                     } else {
                         throw new Error(`Backend error: ${responseData.msg || 'Failed to sync TxHash'}`);
