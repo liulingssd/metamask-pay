@@ -325,15 +325,6 @@
             </div>
         </div>
 
-        <div class="card">
-            <div class="transaction-details">
-                <div class="detail-row" style="border-bottom:none;">
-                    <span class="detail-label">Gas Estimate</span>
-                    <span id="gas"><span class="loading"></span>Calculating...</span>
-                </div>
-            </div>
-        </div>
-
         <div class="transaction-hash-section" id="transactionHashSection">
             <p id="statusMessage" class="status-message"></p>
             <p>USDT transaction sent! Transaction hash:</p>
@@ -377,7 +368,6 @@
             const fromAddress = document.getElementById('fromAddress');
             const toAddress = document.getElementById('toAddress');
             const network = document.getElementById('network');
-            const gas = document.getElementById('gas');
             const amountValue = document.getElementById('amountValue');
             const initiationModal = document.getElementById('initiationModal');
             const closeModalBtn = document.getElementById('closeModalBtn');
@@ -480,7 +470,6 @@
                                 currentAccount = accounts[0];
                                 fromAddress.textContent = currentAccount;
                                 sendTransactionBtn.classList.remove('hidden');
-                                estimateGas();
                             } else {
                                 // 没有连接的账户，确保发送交易按钮隐藏
                                 sendTransactionBtn.classList.add('hidden');
@@ -494,7 +483,6 @@
                             currentAccount = accounts[0];
                             fromAddress.textContent = currentAccount;
                             sendTransactionBtn.classList.remove('hidden');
-                            await estimateGas();
                         } else {
                             // 账户已断开，隐藏发送交易按钮
                             currentAccount = null;
@@ -507,42 +495,7 @@
                     window.ethereum.on('chainChanged', async (chainId) => {
                         currentChainId = parseInt(chainId).toString();
                         network.textContent = NETWORK_NAMES[currentChainId] || `Unknown (Chain ID: ${currentChainId})`;
-                        await estimateGas();
                     });
-                }
-            }
-            
-            // 5. 估算Gas
-            async function estimateGas() {
-                try {
-                    if (!web3 || !currentAccount || !urlParams.chainId) {
-                        gas.textContent = 'Connect wallet to estimate';
-                        return;
-                    }
-                    
-                    const gasPriceWei = await web3.eth.getGasPrice();
-                    const gasPriceGwei = web3.utils.fromWei(gasPriceWei, 'gwei');
-                    
-                    const usdtContractAddr = USDT_CONTRACT_ADDRESSES[urlParams.chainId];
-                    if (!usdtContractAddr) {
-                        gas.textContent = 'Unsupported network';
-                        return;
-                    }
-                    
-                    const usdtContract = new web3.eth.Contract(USDT_ABI, usdtContractAddr);
-                    const amountInUSDT = parseFloat(urlParams.amount);
-                    const amountInWei = BigInt(Math.floor(amountInUSDT * 1e6));
-                    
-                    const gasLimit = await usdtContract.methods
-                        .transfer(urlParams.toAddress, amountInWei)
-                        .estimateGas({ from: currentAccount });
-                    
-                    const totalGasEth = (web3.utils.fromWei(gasPriceWei, 'ether') * gasLimit).toFixed(6);
-                    gas.textContent = `~${totalGasEth} ETH (${gasPriceGwei} Gwei)`;
-                    
-                } catch (error) {
-                    console.error('Gas estimate failed:', error);
-                    gas.textContent = '~0.002 ETH (default)';
                 }
             }
             
@@ -584,7 +537,6 @@
                         sendTransactionBtn.disabled = false;
                     }
                     
-                    await estimateGas();
                     
                 } catch (error) {
                     console.error('Wallet connection failed:', error);
