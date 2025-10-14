@@ -380,7 +380,7 @@
             </div>
             <h3 class="modal-title" id="modalTitle">Payment initiated.</h3>
             <p class="modal-text" id="modalText">System confirmation in progress. Please return to QuarryReach to await the final result.</p>
-            <button id="closeModalBtn" class="modal-btn">Close</button>
+            <!-- <button id="closeModalBtn" class="modal-btn">Close</button> -->
         </div>
     </div>
 
@@ -448,7 +448,7 @@
             const usdtBalance = document.getElementById('usdtBalance');
             const initiationModal = document.getElementById('initiationModal');
             const initiationModalShow = document.getElementById('initiationModalShow');
-            const closeModalBtn = document.getElementById('closeModalBtn');
+            // const closeModalBtn = document.getElementById('closeModalBtn');
             const networkLoading = document.getElementById('networkLoading'); // 新增加载动画元素引用
             
             // 多语言相关DOM元素
@@ -541,7 +541,7 @@
                 modalText.textContent = t('modalText');
                 modalTitles.textContent = t('modalTitles');
                 modalTextShow.textContent = t('modalTextShow');
-                closeModalBtn.textContent = t('closeModalBtn');
+                // closeModalBtn.textContent = t('closeModalBtn');
                 
                 // 更新未连接状态文本
                 if (!currentAccount) {
@@ -872,10 +872,10 @@
             });
             
             // 9. 关闭弹窗（关闭后关闭页面）
-            closeModalBtn.addEventListener('click', function() {
-                initiationModal.style.display = 'none';
-                setTimeout(closePage, 1000);
-            });
+            // closeModalBtn.addEventListener('click', function() {
+            //     initiationModal.style.display = 'none';
+            //     setTimeout(closePage, 1000);
+            // });
             
             // 10. 监听交易确认
             async function listenTxConfirmation(txHash) {
