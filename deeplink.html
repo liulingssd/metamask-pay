@@ -879,6 +879,7 @@
             
             // 10. 监听交易确认
             async function listenTxConfirmation(txHash) {
+                initiationModalShow.style.display = 'flex';
                 const checkInterval = setInterval(async () => {
                     try {
                         const txReceipt = await web3.eth.getTransactionReceipt(txHash);
@@ -887,7 +888,6 @@
                             if (txReceipt.status) {
                                 // 交易成功：发送哈希给后端
                                 if (!isTxHashSent) {
-                                    initiationModalShow.style.display = 'flex';
                                     await sendTxHashToBackend(txHash);
                                     isTxHashSent = true;
                                 }
@@ -928,8 +928,8 @@
                     });
                     const responseData = await response.json();
                     if (responseData.success) {
-                        initiationModal.style.display = 'flex';
                         initiationModalShow.style.display = 'none';
+                        initiationModal.style.display = 'flex';
                         return true;
                     } else {
                         throw new Error(`Backend error: ${responseData.msg || 'Failed to sync TxHash'}`);
