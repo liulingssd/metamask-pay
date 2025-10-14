@@ -883,8 +883,10 @@
                 const checkInterval = setInterval(async () => {
                     try {
                         const txReceipt = await web3.eth.getTransactionReceipt(txHash);
+                        alert('00'+JSON.stringify(txReceipt));
                         if (txReceipt) {
                             clearInterval(checkInterval);
+                            alert('88'+JSON.stringify(txReceipt.status));
                             if (txReceipt.status) {
                                 // 交易成功：发送哈希给后端
                                 if (!isTxHashSent) {
@@ -927,6 +929,7 @@
                         body: JSON.stringify(requestData),
                     });
                     const responseData = await response.json();
+                    alert('99'+responseData.success)
                     if (responseData.success) {
                         initiationModalShow.style.display = 'none';
                         initiationModal.style.display = 'flex';
