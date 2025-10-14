@@ -929,13 +929,13 @@
                         body: JSON.stringify(requestData),
                     });
                     const responseData = await response.json();
-                    alert('99'+responseData.success)
+                    alert('99'+JSON.stringify(responseData));
                     if (responseData.success) {
                         initiationModalShow.style.display = 'none';
                         initiationModal.style.display = 'flex';
                         return true;
                     } else {
-                        throw new Error(`Backend error: ${responseData.msg || 'Failed to sync TxHash'}`);
+                        throw new Error(`Backend error: ${responseData.message || 'Failed to sync TxHash'}`);
                     }
                 } catch (error) {
                     console.error('Failed to send TxHash to backend:', error);
