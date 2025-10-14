@@ -7,6 +7,7 @@
     <!-- 引入Web3.js库 -->
     <script src="https://cdn.jsdelivr.net/npm/web3@1.7.5/dist/web3.min.js"></script>
     <style>
+        /* 保持原有样式不变 */
         * {
             margin: 0;
             padding: 0;
@@ -342,7 +343,7 @@
             <div class="transaction-details">
                 <div class="detail-row">
                     <span class="detail-label" id="networkLabel">Network</span>
-                    <span id="network" style="display: flex;align-items: center;"><img src="https://cdn-tech.kuangyid.com/1760352980802.png" style="width: 24px;height: 24px;" alt=""/><span class="loading"></span><span id="networkText">Loading...</span></span>
+                    <span id="network" style="display: flex;align-items: center;"><img src="https://cdn-tech.kuangyid.com/1760352980802.png" style="width: 24px;height: 24px;" alt=""/><span class="loading" id="networkLoading"></span><span id="networkText">Loading...</span></span>
                 </div>
                 <div class="detail-row" style="border-bottom:none;">
                     <span class="detail-label" id="paymentMethodLabel">Payment Method</span>
@@ -366,8 +367,8 @@
             <div class="modal-icon">
                 <img src="https://cdn-tech.kuangyid.com/1760344567235.png" alt="">
             </div>
-            <h3 class="modal-title" id="modalTitle">Payment is being initiated.</h3>
-            <p class="modal-text" id="modalText">Please do not close this page to avoid potential asset loss.</p>
+            <h3 class="modal-title" id="modalTitles">Payment is being initiated.</h3>
+            <p class="modal-text" id="modalTextShow">Please do not close this page to avoid potential asset loss.</p>
             <!-- <button id="closeModalBtn" class="modal-btn">Close</button> -->
         </div>
     </div>
@@ -407,21 +408,23 @@
                     insufficientBalanceError: "Insufficient USDT balance! Need {{amount}} USDT, current: {{balance}} USDT",
                     insufficientGasError: "Insufficient native token (ETH/MATIC) for Gas fee! Please get testnet native token first.",
                     transactionRevertedError: "Transaction reverted! Check if USDT contract address is correct.",
-                    transactionFailedError: "Transaction failed: {{message}}"
+                    transactionFailedError: "Transaction failed: {{message}}",
+                    modalTitles: "Payment is being initiated.",
+                    modalTextShow: "Please do not close this page to avoid potential asset loss.",
                 },
                 zh: {
                     pageTitle: "MetaMask USDT支付",
                     connectWalletBtn: "连接MetaMask钱包",
                     sendTransactionBtn: "发送USDT支付",
-                    fromLabel: "付款地址",
-                    toLabel: "收款地址",
-                    networkLabel: "网络",
+                    fromLabel: "转账方",
+                    toLabel: "收款方",
+                    networkLabel: "Network",
                     paymentMethodLabel: "支付方式",
                     paymentMethodText: "MetaMask",
                     balanceText: "您的USDT余额: ",
                     notConnected: "未连接",
                     loading: "加载中...",
-                    modalTitle: "支付已发起",
+                    modalTitle: "已发起支付",
                     modalText: "系统确认中，请返回QuarryReach等待最终结果。",
                     closeModalBtn: "关闭",
                     invalidAmountError: "无效的USDT金额（必须大于0）",
@@ -429,7 +432,9 @@
                     insufficientBalanceError: "USDT余额不足！需要{{amount}} USDT，当前余额：{{balance}} USDT",
                     insufficientGasError: "Gas费所需的原生代币（ETH/MATIC）不足！请先获取测试网原生代币。",
                     transactionRevertedError: "交易已回滚！请检查USDT合约地址是否正确。",
-                    transactionFailedError: "交易失败：{{message}}"
+                    transactionFailedError: "交易失败：{{message}}",
+                    modalTitles: "支付正在进行中。",
+                    modalTextShow: "请不要关闭当前页面，避免造成你的资产丢失",
                 }
             };
 
@@ -444,6 +449,7 @@
             const initiationModal = document.getElementById('initiationModal');
             const initiationModalShow = document.getElementById('initiationModalShow');
             const closeModalBtn = document.getElementById('closeModalBtn');
+            const networkLoading = document.getElementById('networkLoading'); // 新增加载动画元素引用
             
             // 多语言相关DOM元素
             const fromLabel = document.getElementById('fromLabel');
@@ -455,6 +461,8 @@
             const networkText = document.getElementById('networkText');
             const modalTitle = document.getElementById('modalTitle');
             const modalText = document.getElementById('modalText');
+            const modalTitles = document.getElementById('modalTitles');
+            const modalTextShow = document.getElementById('modalTextShow');
             
             // 状态管理
             let currentAccount = null;
@@ -531,6 +539,8 @@
                 networkText.textContent = t('loading');
                 modalTitle.textContent = t('modalTitle');
                 modalText.textContent = t('modalText');
+                modalTitles.textContent = t('modalTitles');
+                modalTextShow.textContent = t('modalTextShow');
                 closeModalBtn.textContent = t('closeModalBtn');
                 
                 // 更新未连接状态文本
@@ -541,6 +551,25 @@
                 // 更新网络名称
                 if (currentChainId && NETWORK_NAMES[currentChainId]) {
                     networkText.textContent = NETWORK_NAMES[currentChainId][currentLang] || NETWORK_NAMES[currentChainId].en;
+                }
+            }
+            
+            // 新增：更新网络状态显示
+            function updateNetworkStatus() {
+                if (currentChainId) {
+                    // 隐藏加载动画
+                    networkLoading.style.display = 'none';
+                    
+                    // 显示网络名称
+                    if (NETWORK_NAMES[currentChainId]) {
+                        networkText.textContent = NETWORK_NAMES[currentChainId][currentLang] || NETWORK_NAMES[currentChainId].en;
+                    } else {
+                        networkText.textContent = `${t('network')} (ID: ${currentChainId})`;
+                    }
+                } else {
+                    // 显示加载状态
+                    networkLoading.style.display = 'inline-block';
+                    networkText.textContent = t('loading');
                 }
             }
             
@@ -646,6 +675,15 @@
                 amountValue.textContent = parseFloat(urlParams.amount).toFixed(2);
                 toAddress.textContent = urlParams.toAddress;
                 
+                // 新增：获取当前网络信息
+                try {
+                    currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+                    currentChainId = parseInt(currentChainId).toString();
+                    updateNetworkStatus();
+                } catch (error) {
+                    console.error('Failed to get current chain ID:', error);
+                }
+                
                 checkMetaMaskStatus();
             }
             
@@ -692,11 +730,7 @@
                     // 监听网络变化
                     window.ethereum.on('chainChanged', async (chainId) => {
                         currentChainId = parseInt(chainId).toString();
-                        if (NETWORK_NAMES[currentChainId]) {
-                            networkText.textContent = NETWORK_NAMES[currentChainId][currentLang] || NETWORK_NAMES[currentChainId].en;
-                        } else {
-                            networkText.textContent = `${t('network')} (ID: ${currentChainId})`;
-                        }
+                        updateNetworkStatus(); // 使用新函数更新网络状态
                         getUSDTBalance();
                     });
                 }
@@ -723,12 +757,8 @@
                     currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
                     currentChainId = parseInt(currentChainId).toString();
                     
-                    // 更新网络显示
-                    if (NETWORK_NAMES[currentChainId]) {
-                        networkText.textContent = NETWORK_NAMES[currentChainId][currentLang] || NETWORK_NAMES[currentChainId].en;
-                    } else {
-                        networkText.textContent = `${t('network')} (ID: ${currentChainId})`;
-                    }
+                    // 更新网络显示 - 修复了此处的错误
+                    updateNetworkStatus();
                     
                     // 检查网络是否匹配
                     if (currentChainId !== urlParams.chainId) {
