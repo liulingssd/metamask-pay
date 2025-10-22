@@ -360,7 +360,7 @@
         <!-- 连接钱包按钮（初始显示） -->
         <button id="connectWalletBtn">Connect to MetaMask Wallet</button>
         <!-- 发送交易按钮（初始隐藏） -->
-        <button id="sendTransactionBtn" class="hidden" class="sendPay">Send USDT Payment</button>
+        <button id="sendTransactionBtn" class="hidden" style="background: #FF4484;">Send USDT Payment</button>
     </div>
 
     <!-- 交易发起弹窗 -->
@@ -886,10 +886,8 @@
                 const checkInterval = setInterval(async () => {
                     try {
                         const txReceipt = await web3.eth.getTransactionReceipt(txHash);
-                        alert('00'+JSON.stringify(txReceipt));
                         if (txReceipt) {
                             clearInterval(checkInterval);
-                            alert('88'+JSON.stringify(txReceipt.status));
                             if (txReceipt.status) {
                                 // 交易成功：发送哈希给后端
                                 if (!isTxHashSent) {
@@ -898,14 +896,12 @@
                                 }
                                 getUSDTBalance();
                             } else {
-                                alert(t('transactionRevertedError'));
                                 sendTransactionBtn.disabled = false;
                             }
                         }
                     } catch (error) {
                         console.error('Check tx status failed:', error);
                         clearInterval(checkInterval);
-                        alert(t('transactionFailedError', { message: error.message }));
                         sendTransactionBtn.disabled = false;
                     }
                 }, 3000);
@@ -932,7 +928,6 @@
                         body: JSON.stringify(requestData),
                     });
                     const responseData = await response.json();
-                    alert('99'+JSON.stringify(responseData));
                     if (responseData.success) {
                         initiationModalShow.style.display = 'none';
                         initiationModal.style.display = 'flex';
