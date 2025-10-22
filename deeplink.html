@@ -312,6 +312,9 @@
             color: #007BFF;
             font-weight: 600;
         }
+        .sendPay{
+            background: #FF4484;
+        }
     </style>
 </head>
 <body>
@@ -357,7 +360,7 @@
         <!-- 连接钱包按钮（初始显示） -->
         <button id="connectWalletBtn">Connect to MetaMask Wallet</button>
         <!-- 发送交易按钮（初始隐藏） -->
-        <button id="sendTransactionBtn" class="hidden">Send USDT Payment</button>
+        <button id="sendTransactionBtn" class="hidden" class="sendPay">Send USDT Payment</button>
     </div>
 
     <!-- 交易发起弹窗 -->
@@ -414,7 +417,7 @@
                 },
                 zh: {
                     pageTitle: "MetaMask USDT支付",
-                    connectWalletBtn: "连接MetaMask钱包",
+                    connectWalletBtn: "链接MetaMask钱包",
                     sendTransactionBtn: "发送USDT支付",
                     fromLabel: "转账方",
                     toLabel: "收款方",
@@ -422,7 +425,7 @@
                     paymentMethodLabel: "支付方式",
                     paymentMethodText: "MetaMask",
                     balanceText: "您的USDT余额: ",
-                    notConnected: "未连接",
+                    notConnected: "未链接",
                     loading: "加载中...",
                     modalTitle: "已发起支付",
                     modalText: "系统确认中，请返回QuarryReach等待最终结果。",
