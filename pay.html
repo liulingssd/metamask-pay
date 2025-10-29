@@ -1,56 +1,173 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-  <meta charset="utf-8">
-  <title>Binance Pay Demo</title>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>币安链钱包支付示例</title>
+  <style>
+    .container { padding: 20px; max-width: 500px; margin: 0 auto; }
+    .input-group { margin: 15px 0; }
+    label { display: block; margin-bottom: 5px; font-weight: bold; }
+    input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+    button { 
+      background-color: #f3ba2f; 
+      color: white; 
+      border: none; 
+      padding: 12px 20px; 
+      border-radius: 4px; 
+      cursor: pointer; 
+      width: 100%; 
+      margin-top: 20px;
+      font-size: 16px;
+    }
+    .result { margin-top: 30px; padding: 15px; border-radius: 4px; background-color: #f5f5f5; }
+    .error { color: #ff4d4f; }
+    .success { color: #52c41a; }
+  </style>
 </head>
 <body>
-  <h3>正在发起币安交易...</h3>
+  <div class="container">
+    <h3>BNB转账（币安智能链BSC）</h3>
+    
+    <div class="input-group">
+      <label for="toAddress">接收地址（0x开头）</label>
+      <input 
+        type="text" 
+        id="toAddress" 
+        value="0x78867BbEeF44f2326bF8DDd1941a4439382EF2A7"
+        placeholder="请输入接收地址"
+        maxlength="42"
+      >
+    </div>
+
+    <div class="input-group">
+      <label for="amount">转账金额（BNB）</label>
+      <input 
+        type="number" 
+        id="amount" 
+        value="0.001" 
+        step="0.0001" 
+        min="0.0001"
+        placeholder="请输入金额"
+      >
+    </div>
+
+    <button onclick="startPayment()">发起支付</button>
+
+    <div class="result" id="result"></div>
+  </div>
+
   <script>
-    async function main() {
-      const params = new URLSearchParams(window.location.search)
-      const wallet = params.get("wallet")
-      const chain = params.get("chain")
-      const to = params.get("to")
-      const amount = params.get("amount")
+    // 页面加载时检查是否是钱包回调（获取交易哈希）
+    window.onload = function() {
+      checkCallback();
+    };
 
-      if (wallet !== "binance") {
-        document.body.innerHTML = "❌ 未指定币安钱包"
-        return
-      }
+    /**
+     * 检查是否是钱包回调，解析交易哈希
+     */
+    function checkCallback() {
+      const params = new URLSearchParams(window.location.search);
+      const txHash = params.get('txHash');
+      const status = params.get('status');
+      const resultEl = document.getElementById('result');
 
-      if (!window.BinanceChain) {
-        document.body.innerHTML = "❌ 未检测到币安钱包环境"
-        return
-      }
-
-      try {
-        await window.BinanceChain.request({ method: "eth_requestAccounts" })
-        const provider = new ethers.providers.Web3Provider(window.BinanceChain)
-        const signer = provider.getSigner()
-
-        const tx = await signer.sendTransaction({
-          to,
-          value: ethers.utils.parseEther(amount)
-        })
-
-        document.body.innerHTML = "✅ 交易已发送，等待确认..."
-
-        const receipt = await tx.wait()
-        const hash = receipt.transactionHash
-        document.body.innerHTML = "✅ 交易成功<br>Hash: " + hash
-
-        // 回传 hash 给你的 App
-        setTimeout(() => {
-          const returnUrl = `yourappscheme://tx?txHash=${hash}`
-          window.location.href = returnUrl
-        }, 1000)
-      } catch (err) {
-        document.body.innerHTML = "❌ 交易失败: " + err.message
+      if (status === 'success' && txHash) {
+        resultEl.innerHTML = `<p class="success">交易成功！</p><p>交易哈希：${txHash}</p>`;
+        // 此处可添加后续逻辑（如上传服务器验证）
+      } else if (status === 'failed') {
+        resultEl.innerHTML = `<p class="error">交易失败，请重试</p>`;
       }
     }
-    main()
+
+    /**
+     * 检测币安链钱包是否安装
+     * 原理：尝试打开钱包的Deep Link，若失败则提示未安装
+     */
+    function checkWalletInstalled() {
+      return new Promise((resolve) => {
+        // 生成一个随机的检测链接（仅用于唤起检测）
+        const testLink = 'binance://wallet';
+        const startTime = Date.now();
+
+        // 尝试打开链接
+        window.location.href = testLink;
+
+        // 3秒后检查是否唤起成功（通过计时判断）
+        setTimeout(() => {
+          const endTime = Date.now();
+          // 若时间差小于2秒，说明未唤起（浏览器拦截或未安装）
+          if (endTime - startTime < 2000) {
+            resolve(false);
+          } else {
+            resolve(true);
+          }
+        }, 3000);
+      });
+    }
+
+    /**
+     * BNB金额转换为Wei（1 BNB = 1e18 Wei），并转为十六进制字符串（无0x前缀）
+     */
+    function bnbToWeiHex(bnbAmount) {
+      const wei = Math.floor(parseFloat(bnbAmount) * 1e18);
+      return wei.toString(16); // 转为十六进制（无0x前缀）
+    }
+
+    /**
+     * 发起支付（唤起币安链钱包）
+     */
+    async function startPayment() {
+      const toAddress = document.getElementById('toAddress').value;
+      const amount = document.getElementById('amount').value;
+      const resultEl = document.getElementById('result');
+
+      // 输入校验
+      if (!toAddress || !toAddress.startsWith('0x') || toAddress.length !== 42) {
+        resultEl.innerHTML = `<p class="error">请输入正确的接收地址（0x开头，42位）</p>`;
+        return;
+      }
+      if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+        resultEl.innerHTML = `<p class="error">请输入有效的金额（大于0）</p>`;
+        return;
+      }
+
+      // 检测钱包是否安装
+      const isInstalled = await checkWalletInstalled();
+      if (!isInstalled) {
+        resultEl.innerHTML = `
+          <p class="error">未检测到币安链钱包</p>
+          <p>请先安装：<a href="https://www.binance.com/en/download" target="_blank">下载币安链钱包</a></p>
+        `;
+        return;
+      }
+
+      // 构造交易参数（BSC主网：chain_id=56）
+      const transaction = {
+        chain_id: 56, // 币安智能链（BSC）主网，十进制
+        to: toAddress, // 接收地址
+        value: bnbToWeiHex(amount), // 转账金额（Wei的十六进制，无0x）
+        gas: '5208', // 21000的十六进制（普通转账固定值）
+        gas_price: '3b9aca00' // 1Gwei的十六进制（1e9 Wei）
+      };
+
+      // 回调URL（当前页面地址，用于接收交易结果）
+      const callbackUrl = window.location.href.split('?')[0]; // 移除现有参数
+
+      // 构造币安链钱包的Deep Link（最新协议）
+      const deepLink = `binance://wallet/transact?` +
+        `chain_id=${transaction.chain_id}&` +
+        `to=${transaction.to}&` +
+        `value=${transaction.value}&` +
+        `gas=${transaction.gas}&` +
+        `gas_price=${transaction.gas_price}&` +
+        `callback=${encodeURIComponent(callbackUrl)}`;
+
+      console.log('唤起钱包链接：', deepLink);
+
+      // 唤起钱包（必须通过用户交互触发，否则浏览器会拦截）
+      window.location.href = deepLink;
+    }
   </script>
 </body>
 </html>
