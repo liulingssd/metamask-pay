@@ -102,7 +102,7 @@
             z-index: 10;
         }
 
-        button {
+        .button {
             color: white;
             border: none;
             height: 42px;
@@ -118,18 +118,18 @@
             outline: none;
         }
 
-        button:hover:not(:disabled) {
+        .button:hover:not(:disabled) {
             background: #0066D9;
             transform: translateY(-1px);
             box-shadow: 0 3px 8px rgba(0, 122, 255, 0.3);
         }
 
-        button:active {
+        .button:active {
             transform: translateY(0);
             box-shadow: 0 1px 3px rgba(0, 122, 255, 0.2);
         }
 
-        button:disabled {
+        .button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             box-shadow: none;
@@ -358,9 +358,9 @@
 
     <div class="buttons">
         <!-- 连接钱包按钮（初始显示） -->
-        <button id="connectWalletBtn">Connect to MetaMask Wallet</button>
+        <div class="button" id="connectWalletBtn">Connect to MetaMask Wallet</div>
         <!-- 发送交易按钮（初始隐藏） -->
-        <button id="sendTransactionBtn" class="hidden" style="background: #FF4484;">Send USDT Payment</button>
+        <div class="button hidden" id="sendTransactionBtn"  style="background: #FF4484;">Send USDT Payment</div>
     </div>
 
     <!-- 交易发起弹窗 -->
